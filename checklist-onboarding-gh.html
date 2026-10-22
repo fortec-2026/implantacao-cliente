@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Implantação de Novo Cliente</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #F8F9FB;
+  --surface: #FFFFFF;
+  --border: #E2E6ED;
+  --text: #1A1F2E;
+  --muted: #6B7280;
+  --accent: #1B4FD8;
+  --accent-light: #EEF2FF;
+  --accent-dark: #1340B0;
+  --success: #059669;
+  --success-light: #ECFDF5;
+  --chip-bg: #F1F5F9;
+  --input-bg: #FFFFFF;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1117; --surface: #1A1F2E; --border: #2D3344; --text: #F0F2F7;
+    --muted: #8B93A8; --accent: #4B72F7; --accent-light: #1B2548; --accent-dark: #6B8EFA;
+    --success: #10B981; --success-light: #0B2E25; --chip-bg: #252B3B; --input-bg: #252B3B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1117; --surface: #1A1F2E; --border: #2D3344; --text: #F0F2F7;
+  --muted: #8B93A8; --accent: #4B72F7; --accent-light: #1B2548; --accent-dark: #6B8EFA;
+  --success: #10B981; --success-light: #0B2E25; --chip-bg: #252B3B; --input-bg: #252B3B;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100dvh;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column;
+}
+/* TOP BAR */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 14px 0 12px;
+}
+.topbar-inner { display: flex; align-items: center; gap: 12px; }
+.logo-mark {
+  width: 32px; height: 32px; background: var(--accent); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.logo-mark svg { width: 18px; height: 18px; }
+.topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.topbar-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.topbar-step { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.progress-rail { height: 3px; background: var(--border); position: relative; overflow: hidden; margin-top: 10px; }
+.progress-fill { height: 100%; background: var(--accent); transition: width .4s cubic-bezier(.4,0,.2,1); }
+/* STEPS */
+.steps-wrap { flex: 1; }
+.step { display: none; padding-block: 24px 32px; animation: fadeUp .25s ease; }
+.step.active { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.step-heading { font-size: 22px; font-weight: 600; margin-bottom: 4px; text-wrap: balance; }
+.step-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+/* FIELDS */
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: .03em; text-transform: uppercase; margin-bottom: 6px; }
+.field input[type=text], .field input[type=email], .field input[type=tel], .field input[type=date], .field select {
+  width: 100%; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 13px 14px; font-size: 16px; font-family: 'DM Sans', system-ui, sans-serif;
+  color: var(--text); outline: none; transition: border-color .15s; -webkit-appearance: none; appearance: none;
+}
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.field-row { display: flex; gap: 12px; }
+.field-row .field { flex: 1; margin-bottom: 0; }
+/* CHIPS */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 9px 16px; border-radius: 99px; background: var(--chip-bg); border: 1.5px solid var(--border);
+  font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; transition: all .15s;
+  user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.chip:active { transform: scale(.96); }
+.chip.selected { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.chip.single.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip.green-chip.selected { background: #059669; border-color: #059669; color: #fff; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .chip.green-chip.selected { background: #10B981; border-color: #10B981; }
+}
+:root[data-theme="dark"] .chip.green-chip.selected { background: #10B981; border-color: #10B981; }
+/* CHECK ITEMS */
+.check-list { display: flex; flex-direction: column; gap: 10px; }
+.check-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 14px; cursor: pointer; transition: border-color .15s, background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.check-item.checked { border-color: var(--accent); background: var(--accent-light); }
+.check-box {
+  width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border);
+  flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center;
+  transition: all .15s; background: var(--input-bg);
+}
+.check-item.checked .check-box { background: var(--accent); border-color: var(--accent); }
+.check-box svg { display: none; }
+.check-item.checked .check-box svg { display: block; }
+.check-label { flex: 1; }
+.check-label strong { font-size: 15px; font-weight: 500; display: block; line-height: 1.3; }
+.check-label span { font-size: 13px; color: var(--muted); display: block; margin-top: 2px; line-height: 1.4; }
+/* INFO NOTE */
+.info-note {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--accent-light); border: 1px solid var(--accent); border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 16px; font-size: 13px; color: var(--accent); line-height: 1.5;
+}
+.info-note svg { flex-shrink: 0; margin-top: 1px; }
+/* GROUP CARDS */
+.group-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.group-card-title { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 12px; }
+/* NAV BAR */
+.nav-bar {
+  position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border);
+  padding: 12px 0; padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  display: flex; gap: 10px; z-index: 20;
+}
+.btn {
+  flex: 1; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: 600;
+  font-family: 'DM Sans', system-ui, sans-serif; border: none; cursor: pointer;
+  transition: transform .1s, opacity .15s; -webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(.97); }
+.btn-back {
+  background: var(--chip-bg); color: var(--text); flex: 0 0 auto; width: 56px;
+  display: flex; align-items: center; justify-content: center; padding: 0;
+}
+.btn-next { background: var(--accent); color: #fff; }
+.btn-next:hover { background: var(--accent-dark); }
+.btn-finish { background: var(--success); color: #fff; }
+/* SUCCESS */
+.success-screen {
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  padding-block: 60px 32px; text-align: center; min-height: 60vh;
+}
+.success-screen.active { display: flex; }
+.success-icon {
+  width: 72px; height: 72px; background: var(--success-light); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
+}
+.success-icon svg { width: 36px; height: 36px; color: var(--success); }
+.success-screen h2 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+.success-screen p { font-size: 15px; color: var(--muted); max-width: 300px; line-height: 1.6; margin-bottom: 32px; }
+.summary-card { width: 100%; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; text-align: left; margin-bottom: 20px; }
+.summary-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 14px; gap: 12px; }
+.summary-row:last-child { border-bottom: none; }
+.summary-row .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; font-weight: 500; flex-shrink: 0; }
+.summary-row .v { color: var(--text); font-weight: 500; text-align: right; }
+.btn-novo { width: 100%; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: 600; font-family: 'DM Sans', system-ui, sans-serif; border: 1.5px solid var(--border); background: var(--chip-bg); color: var(--text); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* SDIV */
+.sdiv { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* PRINT STYLES */
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  .topbar, .nav-bar, .steps-wrap, .success-screen .summary-card + button, .btn-novo { display: none !important; }
+  .success-screen { display: block !important; min-height: unset !important; padding: 0 !important; }
+  .print-content { display: block !important; }
+}
+.print-content { display: none; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="logo-mark">
+      <svg viewBox="0 0 18 18" fill="none">
+        <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" fill-opacity=".9"/>
+        <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" fill-opacity=".6"/>
+        <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" fill-opacity=".6"/>
+        <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" fill-opacity=".9"/>
+      </svg>
+    </div>
+    <div>
+      <div class="topbar-title">Novo cliente</div>
+      <div class="topbar-sub" id="step-name">Identificação</div>
+    </div>
+    <div class="topbar-step" id="step-counter">1 / 6</div>
+  </div>
+  <div class="progress-rail">
+    <div class="progress-fill" id="progress-fill" style="width:16.6%"></div>
+  </div>
+</div>
+
+<div class="steps-wrap">
+
+  <!-- STEP 1 -->
+  <div class="step active" id="step-1">
+    <div class="step-heading">Identificação da empresa</div>
+    <div class="step-sub">Dados básicos do novo cliente.</div>
+    <div class="field">
+      <label>CNPJ</label>
+      <div style="position:relative;">
+        <input type="text" id="cnpj" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric">
+        <div id="cnpj-spinner" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%)">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="animation:spin .8s linear infinite;">
+            <circle cx="9" cy="9" r="7" stroke="var(--border)" stroke-width="2"/>
+            <path d="M9 2a7 7 0 0 1 7 7" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <div id="cnpj-status" style="font-size:12px;margin-top:5px;min-height:16px;"></div>
+    </div>
+    <div class="field">
+      <label>Razão Social</label>
+      <input type="text" id="razao" placeholder="Preenchido automaticamente pelo CNPJ" autocomplete="organization">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Data de início no escritório</label>
+        <input type="date" id="data-inicio">
+      </div>
+    </div>
+    <div class="sdiv">Ramo de atuação <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(pode selecionar mais de um)</span></div>
+    <div class="chips" id="chips-ramo">
+      <div class="chip multi" data-val="Comércio">Comércio</div>
+      <div class="chip multi" data-val="Transporte">Transporte</div>
+      <div class="chip multi" data-val="Serviços">Serviços</div>
+      <div class="chip multi" data-val="Indústria">Indústria</div>
+    </div>
+    <div class="sdiv">Regime Tributário Anterior</div>
+    <div class="chips" id="chips-regime-ant">
+      <div class="chip single" data-val="Simples Nacional">Simples Nacional</div>
+      <div class="chip single" data-val="Lucro Presumido">Lucro Presumido</div>
+      <div class="chip single" data-val="Lucro Real">Lucro Real</div>
+    </div>
+    <div class="sdiv">Regime Tributário Atual</div>
+    <div class="chips" id="chips-regime">
+      <div class="chip green-chip" data-val="Simples Nacional">Simples Nacional</div>
+      <div class="chip green-chip" data-val="Lucro Presumido">Lucro Presumido</div>
+      <div class="chip green-chip" data-val="Lucro Real">Lucro Real</div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step" id="step-2">
+    <div class="step-heading">Documentos e acessos</div>
+    <div class="step-sub">Marque os itens recebidos ou confirmados com o cliente.</div>
+    <div class="check-list">
+      <div class="check-item" data-key="cert-digital">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Certificado Digital da Empresa</strong><span>Arquivo (A1), Token ou Cartão + senha</span></div>
+      </div>
+      <div class="check-item" data-key="prefeitura">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Usuário e senha da Prefeitura</strong><span>Acesso para emissão e consulta de NFS-e, quando aplicável</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step" id="step-3">
+    <div class="step-heading">Documentação fiscal</div>
+    <div class="step-sub">Documentos para envio mensal ao escritório.</div>
+    <div class="info-note">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Prazo de envio mensal: até o 5º dia útil de cada mês.
+    </div>
+    <div class="check-list">
+      <div class="check-item" data-key="xml-entrada">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>XML das NF de Entrada / Compras</strong><span>Para empresas com sistema de captura automática</span></div>
+      </div>
+      <div class="check-item" id="sieg-check-item" data-key="sieg">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Não possui sistema de captura — Cadastrar no SIEG</strong><span>Marque se a empresa não tem captura automática de XML</span></div>
+      </div>
+      <div class="check-item" data-key="xml-emissoes">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>XML das emissões de NF-e / CT-e</strong><span>Identificar CT-es com exportação</span></div>
+      </div>
+      <div class="check-item" data-key="xml-ativo">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>XML de ativo imobilizado — veículos</strong><span>Veículos novos com até 4 anos de aquisição</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step" id="step-4">
+    <div class="step-heading">Controles operacionais</div>
+    <div class="step-sub">Relatórios e planilhas necessários para as rotinas do escritório.</div>
+    <div class="check-list">
+      <div class="check-item" data-key="planilha-compras">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Planilha de Classificação das Compras</strong><span>Custo, revenda, matéria-prima, despesa administrativa, outros</span></div>
+      </div>
+      <div class="check-item" data-key="fretes">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Relatório de Fretes de Terceiros</strong><span>Subcontratados — conforme planilha padrão do escritório</span></div>
+      </div>
+      <div class="check-item" data-key="servicos-tomados">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Serviços Tomados — XML e/ou PDF</strong><span>Pedágios, locações, seguro, energia elétrica e equivalentes</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step" id="step-5">
+    <div class="step-heading">Contato do responsável</div>
+    <div class="step-sub">Pessoa de referência para comunicação com o escritório.</div>
+    <div class="field">
+      <label>Nome completo</label>
+      <input type="text" id="contato-nome" placeholder="Nome do responsável" autocomplete="name">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Telefone</label>
+        <input type="tel" id="contato-tel" placeholder="(00) 00000-0000" inputmode="tel">
+      </div>
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" id="contato-email" placeholder="email@empresa.com.br" inputmode="email">
+      </div>
+    </div>
+    <div class="field" style="margin-top:4px;">
+      <label>Como prefere receber os documentos?</label>
+      <div class="chips" id="chips-meio" style="margin-top:4px;">
+        <div class="chip single" data-val="E-mail">E-mail</div>
+        <div class="chip single" data-val="WhatsApp">WhatsApp</div>
+        <div class="chip single" data-val="Sistema">Sistema</div>
+        <div class="chip single" data-val="Plataforma">Plataforma</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="step" id="step-6">
+    <div class="step-heading">Empresas do grupo</div>
+    <div class="step-sub">Informe outras empresas do mesmo grupo econômico, se houver.</div>
+    <div id="grupos-container">
+      <div class="group-card" id="grupo-1">
+        <div class="group-card-title">Empresa 1</div>
+        <div class="field-row">
+          <div class="field"><label>Razão Social</label><input type="text" placeholder="Nome da empresa"></div>
+          <div class="field"><label>CNPJ</label><input type="text" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric"></div>
+        </div>
+        <div class="sdiv" style="margin-top:4px;">Regime</div>
+        <div class="chips">
+          <div class="chip single" data-val="Simples Nacional">Simples</div>
+          <div class="chip single" data-val="Lucro Presumido">L. Presumido</div>
+          <div class="chip single" data-val="Lucro Real">L. Real</div>
+        </div>
+      </div>
+      <div class="group-card" id="grupo-2">
+        <div class="group-card-title">Empresa 2</div>
+        <div class="field-row">
+          <div class="field"><label>Razão Social</label><input type="text" placeholder="Nome da empresa"></div>
+          <div class="field"><label>CNPJ</label><input type="text" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric"></div>
+        </div>
+        <div class="sdiv" style="margin-top:4px;">Regime</div>
+        <div class="chips">
+          <div class="chip single" data-val="Simples Nacional">Simples</div>
+          <div class="chip single" data-val="Lucro Presumido">L. Presumido</div>
+          <div class="chip single" data-val="Lucro Real">L. Real</div>
+        </div>
+      </div>
+      <div class="group-card" id="grupo-3">
+        <div class="group-card-title">Empresa 3</div>
+        <div class="field-row">
+          <div class="field"><label>Razão Social</label><input type="text" placeholder="Nome da empresa"></div>
+          <div class="field"><label>CNPJ</label><input type="text" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric"></div>
+        </div>
+        <div class="sdiv" style="margin-top:4px;">Regime</div>
+        <div class="chips">
+          <div class="chip single" data-val="Simples Nacional">Simples</div>
+          <div class="chip single" data-val="Lucro Presumido">L. Presumido</div>
+          <div class="chip single" data-val="Lucro Real">L. Real</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-screen" id="success-screen">
+    <div class="success-icon">
+      <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="18" cy="18" r="16"/><path d="M11 18l5 5 9-9"/>
+      </svg>
+    </div>
+    <h2>Cadastro registrado!</h2>
+    <p>As informações do novo cliente foram salvas com sucesso.</p>
+    <div class="summary-card" id="summary-card"></div>
+    <button class="btn btn-finish" style="width:100%;margin-bottom:10px;" onclick="gerarPDF()">
+      ↓&nbsp; Salvar como PDF
+    </button>
+    <button class="btn-novo" onclick="resetForm()">Cadastrar novo cliente</button>
+  </div>
+
+</div>
+
+<!-- NAV BAR -->
+<div class="nav-bar" id="nav-bar">
+  <button class="btn btn-back" id="btn-back" onclick="prevStep()" style="display:none" aria-label="Voltar">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+  </button>
+  <button class="btn btn-next" id="btn-next" onclick="nextStep()">Continuar</button>
+</div>
+
+<script>
+const TOTAL_STEPS = 6;
+let current = 1;
+const stepNames = ['Identificação','Documentos','Fiscal','Operacional','Contato','Grupo'];
+
+function updateNav() {
+  const isLast = current === TOTAL_STEPS;
+  const btnNext = document.getElementById('btn-next');
+  const btnBack = document.getElementById('btn-back');
+  btnBack.style.display = current > 1 ? 'flex' : 'none';
+  btnNext.textContent = isLast ? 'Finalizar cadastro' : 'Continuar';
+  btnNext.className = 'btn ' + (isLast ? 'btn-finish' : 'btn-next');
+  document.getElementById('step-counter').textContent = current + ' / ' + TOTAL_STEPS;
+  document.getElementById('step-name').textContent = stepNames[current - 1];
+  document.getElementById('progress-fill').style.width = (current / TOTAL_STEPS * 100) + '%';
+  document.getElementById('nav-bar').style.display = 'flex';
+}
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('step-' + n);
+  if (el) el.classList.add('active');
+  document.getElementById('success-screen').classList.remove('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextStep() {
+  if (current < TOTAL_STEPS) { current++; showStep(current); updateNav(); }
+  else showSuccess();
+}
+
+function prevStep() {
+  if (current > 1) { current--; showStep(current); updateNav(); }
+}
+
+function showSuccess() {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('success-screen').classList.add('active');
+  document.getElementById('nav-bar').style.display = 'none';
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('step-name').textContent = 'Concluído';
+  document.getElementById('step-counter').textContent = '✓';
+  buildSummary();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function collectData() {
+  const ramos = [...document.querySelectorAll('#chips-ramo .chip.selected')].map(c => c.dataset.val);
+  const regime = document.querySelector('#chips-regime .chip.selected')?.dataset.val || '';
+  const regimeAnt = document.querySelector('#chips-regime-ant .chip.selected')?.dataset.val || '';
+  const meio = document.querySelector('#chips-meio .chip.selected')?.dataset.val || '';
+  const sieg = document.getElementById('sieg-check-item').classList.contains('checked');
+  return {
+    razao: document.getElementById('razao').value,
+    cnpj: document.getElementById('cnpj').value,
+    dataInicio: document.getElementById('data-inicio').value,
+    ramo: ramos.join(', ') || '—',
+    regime: regime || '—',
+    regimeAnt: regimeAnt || '—',
+    contato: document.getElementById('contato-nome').value,
+    telefone: document.getElementById('contato-tel').value,
+    email: document.getElementById('contato-email').value,
+    meio: meio || '—',
+    sieg
+  };
+}
+
+function buildSummary() {
+  const d = collectData();
+  const rows = [
+    ['Razão Social', d.razao || '—'],
+    ['CNPJ', d.cnpj || '—'],
+    ['Ramo', d.ramo],
+    ['Regime Atual', d.regime],
+    ['Responsável', d.contato || '—'],
+    ['Telefone', d.telefone || '—'],
+    ['Envio docs', d.meio],
+  ];
+  document.getElementById('summary-card').innerHTML = rows.map(([k, v]) =>
+    `<div class="summary-row"><span class="k">${k}</span><span class="v">${v}</span></div>`
+  ).join('');
+}
+
+function checkLabel(key) {
+  const el = document.querySelector(`.check-item[data-key="${key}"]`);
+  return el?.classList.contains('checked') ? '☑' : '☐';
+}
+
+function gerarPDF() {
+  const d = collectData();
+
+  // Grupos
+  const grupos = [];
+  for (let i = 1; i <= 3; i++) {
+    const card = document.getElementById('grupo-' + i);
+    if (!card) continue;
+    const inputs = card.querySelectorAll('input[type=text]');
+    const nome = inputs[0]?.value || '';
+    const cnpj = inputs[1]?.value || '';
+    const reg = card.querySelector('.chip.selected')?.dataset.val || '';
+    if (nome || cnpj) grupos.push({ nome, cnpj, reg });
+  }
+
+  const dataFormatada = d.dataInicio
+    ? new Date(d.dataInicio + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Implantação — ${d.razao || 'Novo Cliente'}</title>
+<style>
+  @page { size: A4; margin: 18mm 15mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 11px; color: #1a1a2e; background: #fff; }
+  .header { background: #1B4FD8; color: #fff; padding: 14px 18px; border-radius: 6px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+  .header h1 { font-size: 15px; font-weight: 700; }
+  .header .sub { font-size: 10px; opacity: .8; margin-top: 3px; }
+  .header .date { font-size: 10px; opacity: .7; text-align: right; }
+  .section { margin-bottom: 14px; }
+  .section-title { background: #EEF2FF; color: #1B4FD8; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 5px 10px; border-left: 3px solid #1B4FD8; margin-bottom: 6px; }
+  .row { display: flex; border-bottom: 1px solid #eee; padding: 4px 6px; gap: 8px; }
+  .row .label { color: #666; width: 140px; flex-shrink: 0; }
+  .row .value { font-weight: 500; flex: 1; }
+  .check-row { display: flex; align-items: flex-start; gap: 8px; padding: 5px 6px; border-bottom: 1px solid #eee; }
+  .check-row .cb { font-size: 13px; flex-shrink: 0; }
+  .check-row .txt strong { display: block; }
+  .check-row .txt span { color: #666; font-size: 10px; }
+  .note { background: #EEF2FF; border: 1px solid #1B4FD8; border-radius: 4px; padding: 6px 10px; color: #1B4FD8; font-size: 10px; margin-bottom: 8px; }
+  .sieg-alert { background: #fff7ed; border: 1.5px solid #f97316; border-radius: 4px; padding: 6px 10px; margin: 4px 0 4px 22px; font-size: 10px; color: #c2410c; font-weight: 600; }
+  .grupo-row { padding: 4px 6px; border-bottom: 1px solid #eee; }
+  .footer { margin-top: 14px; font-size: 9px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 8px; }
+  .badge { display: inline-block; background: #059669; color: #fff; border-radius: 99px; padding: 1px 8px; font-size: 10px; font-weight: 700; }
+  .badge-blue { background: #1B4FD8; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="sub">Checklist de Implantação de Novo Cliente</div>
+    <h1>${d.razao || 'Novo Cliente'}</h1>
+  </div>
+  <div class="date">Data: ${new Date().toLocaleDateString('pt-BR')}<br>Emitido pelo escritório</div>
+</div>
+
+<div class="section">
+  <div class="section-title">1. Identificação da Empresa</div>
+  <div class="row"><span class="label">Razão Social</span><span class="value">${d.razao || '—'}</span></div>
+  <div class="row"><span class="label">CNPJ</span><span class="value">${d.cnpj || '—'}</span></div>
+  <div class="row"><span class="label">Data de início</span><span class="value">${dataFormatada}</span></div>
+  <div class="row"><span class="label">Ramo de atuação</span><span class="value">${d.ramo}</span></div>
+  <div class="row"><span class="label">Regime anterior</span><span class="value">${d.regimeAnt}</span></div>
+  <div class="row"><span class="label">Regime atual</span><span class="value"><span class="badge">${d.regime}</span></span></div>
+</div>
+
+<div class="section">
+  <div class="section-title">2. Documentos e Acessos</div>
+  <div class="check-row"><span class="cb">${checkLabel('cert-digital')}</span><div class="txt"><strong>Certificado Digital da Empresa</strong><span>Arquivo (A1), Token ou Cartão + senha</span></div></div>
+  <div class="check-row"><span class="cb">${checkLabel('prefeitura')}</span><div class="txt"><strong>Usuário e senha da Prefeitura</strong><span>Acesso para NFS-e, quando aplicável</span></div></div>
+</div>
+
+<div class="section">
+  <div class="section-title">3. Documentação Fiscal</div>
+  <div class="note">Prazo de envio mensal: até o 5º dia útil de cada mês.</div>
+  <div class="check-row"><span class="cb">${checkLabel('xml-entrada')}</span><div class="txt"><strong>XML das NF de Entrada / Compras</strong><span>Para empresas com sistema de captura automática</span></div></div>
+  <div class="check-row"><span class="cb">${checkLabel('sieg')}</span><div class="txt"><strong>Não possui sistema de captura — Cadastrar no SIEG</strong><span>Empresa sem captura automática de XML</span></div></div>
+  ${d.sieg ? '<div class="sieg-alert">⚠ AÇÃO NECESSÁRIA: Cadastrar empresa no SIEG para download automático de XML</div>' : ''}
+  <div class="check-row"><span class="cb">${checkLabel('xml-emissoes')}</span><div class="txt"><strong>XML das emissões de NF-e / CT-e</strong><span>Identificar CT-es com exportação</span></div></div>
+  <div class="check-row"><span class="cb">${checkLabel('xml-ativo')}</span><div class="txt"><strong>XML de ativo imobilizado — veículos</strong><span>Veículos novos com até 4 anos de aquisição</span></div></div>
+</div>
+
+<div class="section">
+  <div class="section-title">4. Controles Operacionais</div>
+  <div class="check-row"><span class="cb">${checkLabel('planilha-compras')}</span><div class="txt"><strong>Planilha de Classificação das Compras</strong></div></div>
+  <div class="check-row"><span class="cb">${checkLabel('fretes')}</span><div class="txt"><strong>Relatório de Fretes de Terceiros</strong></div></div>
+  <div class="check-row"><span class="cb">${checkLabel('servicos-tomados')}</span><div class="txt"><strong>Serviços Tomados — XML e/ou PDF</strong></div></div>
+</div>
+
+<div class="section">
+  <div class="section-title">5. Contato do Responsável</div>
+  <div class="row"><span class="label">Nome</span><span class="value">${d.contato || '—'}</span></div>
+  <div class="row"><span class="label">Telefone</span><span class="value">${d.telefone || '—'}</span></div>
+  <div class="row"><span class="label">E-mail</span><span class="value">${d.email || '—'}</span></div>
+  <div class="row"><span class="label">Recebe documentos via</span><span class="value">${d.meio}</span></div>
+</div>
+
+${grupos.length > 0 ? `
+<div class="section">
+  <div class="section-title">6. Empresas do Grupo Econômico</div>
+  ${grupos.map((g, i) => `<div class="grupo-row"><strong>${i + 1}. ${g.nome || '—'}</strong> &nbsp; CNPJ: ${g.cnpj || '—'} &nbsp; Regime: ${g.reg || '—'}</div>`).join('')}
+</div>` : ''}
+
+<div class="footer">Departamento Fiscal &nbsp;|&nbsp; Cassiano Reis &nbsp;|&nbsp; (16) 98150-5852 &nbsp;|&nbsp; Emitido em ${new Date().toLocaleDateString('pt-BR')}</div>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.write(html);
+    win.document.close();
+    setTimeout(() => win.print(), 600);
+  } else {
+    alert('Permita pop-ups neste site para gerar o PDF.');
+  }
+}
+
+function resetForm() {
+  document.querySelectorAll('input[type=text], input[type=email], input[type=tel], input[type=date]').forEach(i => i.value = '');
+  document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.check-item.checked').forEach(c => c.classList.remove('checked'));
+  document.getElementById('cnpj-status').textContent = '';
+  current = 1;
+  showStep(1);
+  updateNav();
+  document.getElementById('success-screen').classList.remove('active');
+}
+
+// Chips multi
+document.querySelectorAll('.chip.multi').forEach(chip => {
+  chip.addEventListener('click', () => chip.classList.toggle('selected'));
+});
+
+// Chips single
+document.querySelectorAll('.chip.single').forEach(chip => {
+  chip.addEventListener('click', () => {
+    chip.parentElement.querySelectorAll('.chip.single').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+  });
+});
+
+// Chips green
+document.querySelectorAll('.chip.green-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    chip.parentElement.querySelectorAll('.chip.green-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+  });
+});
+
+// Check items (todos, inclusive SIEG — agora com data-key="sieg")
+document.querySelectorAll('.check-item').forEach(item => {
+  item.addEventListener('click', () => item.classList.toggle('checked'));
+});
+
+// CNPJ
+const cnpjInput = document.getElementById('cnpj');
+const cnpjStatus = document.getElementById('cnpj-status');
+const cnpjSpinner = document.getElementById('cnpj-spinner');
+let cnpjTimer = null;
+
+cnpjInput.addEventListener('input', function () {
+  let v = this.value.replace(/\D/g, '');
+  if (v.length > 14) v = v.slice(0, 14);
+  v = v.replace(/^(\d{2})(\d)/, '$1.$2')
+       .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+       .replace(/\.(\d{3})(\d)/, '.$1/$2')
+       .replace(/(\d{4})(\d)/, '$1-$2');
+  this.value = v;
+  clearTimeout(cnpjTimer);
+  const digits = v.replace(/\D/g, '');
+  if (digits.length === 14) {
+    cnpjTimer = setTimeout(() => fetchCNPJ(digits), 600);
+  } else {
+    cnpjStatus.textContent = '';
+    cnpjStatus.style.color = '';
+  }
+});
+
+async function fetchCNPJ(digits) {
+  cnpjSpinner.style.display = 'block';
+  cnpjStatus.textContent = 'Consultando...';
+  cnpjStatus.style.color = 'var(--muted)';
+
+  let resultado = null;
+  // Tenta BrasilAPI diretamente (funciona fora do sandbox do artifact)
+  try {
+    const r = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
+    if (r.ok) {
+      const d = await r.json();
+      if (d && d.razao_social) {
+        resultado = { razao: d.razao_social, cnae: (d.cnae_fiscal_descricao || '').toLowerCase() };
+      }
+    }
+  } catch (e) {
+    // Se falhar (ex: offline), tenta via proxy
+    try {
+      const target = encodeURIComponent(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
+      const r2 = await fetch(`https://api.allorigins.win/get?url=${target}`);
+      if (r2.ok) {
+        const wrapper = await r2.json();
+        const d = JSON.parse(wrapper.contents);
+        if (d && d.razao_social) {
+          resultado = { razao: d.razao_social, cnae: (d.cnae_fiscal_descricao || '').toLowerCase() };
+        }
+      }
+    } catch (e2) {}
+  }
+
+  cnpjSpinner.style.display = 'none';
+
+  if (resultado?.razao) {
+    document.getElementById('razao').value = resultado.razao;
+    cnpjStatus.textContent = '✓ Empresa encontrada';
+    cnpjStatus.style.color = 'var(--success)';
+    const cnae = resultado.cnae;
+    const selRamo = (val) => document.querySelectorAll('#chips-ramo .chip').forEach(c => { if (c.dataset.val === val) c.classList.add('selected'); });
+    if (cnae.includes('transport') || cnae.includes('frete') || cnae.includes('logíst')) selRamo('Transporte');
+    else if (cnae.includes('comércio') || cnae.includes('atacado') || cnae.includes('varejo')) selRamo('Comércio');
+    else if (cnae.includes('servi') || cnae.includes('assessoria') || cnae.includes('consultoria')) selRamo('Serviços');
+    else if (cnae.includes('indústr') || cnae.includes('fabrica') || cnae.includes('manufat')) selRamo('Indústria');
+  } else {
+    cnpjStatus.textContent = 'Não encontrado — preencha manualmente';
+    cnpjStatus.style.color = '#DC2626';
+  }
+}
+
+updateNav();
+</script>
+</body>
+</html>
