@@ -372,6 +372,17 @@ body::before {
 .group-card-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .07em; text-transform: uppercase; margin-bottom: 12px; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Histórico ─────────────────────────────────────────────────────────── */
+.hist-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.hist-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.hist-razao { font-size: 15px; font-weight: 700; color: var(--text); }
+.hist-cnpj { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.hist-date { font-size: 12px; font-weight: 600; color: var(--navy); text-align: right; flex-shrink: 0; }
+.hist-date span { font-size: 11px; color: var(--muted); font-weight: 400; }
+.hist-deps { display: flex; gap: 6px; flex-wrap: wrap; }
+.hist-dep { padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; background: var(--chip-bg); color: var(--muted); }
+.hist-dep.done { background: var(--success-light); color: var(--success); }
 </style>
 </head>
 <body>
@@ -560,6 +571,21 @@ body::before {
 
     <div style="margin-top:24px;">
       <button class="btn btn-next" style="width:100%" onclick="openFinalizar()">Finalizar e Gerar PDF</button>
+    </div>
+    <div style="margin-top:12px;">
+      <button class="btn" style="width:100%;background:transparent;border:1.5px solid var(--gold);color:var(--gold);font-weight:600" onclick="openHistorico()">📋 Histórico de Implantações</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ HISTÓRICO ════════════════════════════ -->
+<div class="screen" id="screen-historico">
+  <div class="step active">
+    <div class="step-heading">Histórico</div>
+    <div class="step-sub">Empresas cadastradas via implantação.</div>
+    <div id="historico-lista" style="margin-top:16px"></div>
+    <div style="margin-top:24px">
+      <button class="btn" style="background:var(--surface2);color:var(--text2);border:1.5px solid var(--border);width:100%" onclick="goHome()">← Voltar</button>
     </div>
   </div>
 </div>
@@ -772,10 +798,6 @@ body::before {
         <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="check-label"><strong>Usuário e senha do Estado (SEFAZ)</strong><span>Acesso ao portal estadual</span></div>
       </div>
-      <div class="check-item" data-key="redesim">
-        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="check-label"><strong>Rede Sim</strong><span>Acesso à Rede Nacional para Simplificação do Registro</span></div>
-      </div>
     </div>
     <div class="sdiv" style="margin-top:20px;">Documentos societários</div>
     <div class="check-list">
@@ -865,7 +887,14 @@ body::before {
   <button class="btn btn-next" id="btn-next" onclick="nextStep()">Continuar</button>
 </div>
 
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 <script>
+// ── Supabase ───────────────────────────────────────────────────────────────
+const SUPA_URL = 'https://yhrtxukigwjejdtjgzwn.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlocnR4dWtpZ3dqZWpkdGpnenduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NzczMDQsImV4cCI6MjEwODM1MzMwNH0.4lUWEiN9V-TWk3PI5OgxtQNy5JgoeyU9UNyR1nFLUl8';
+const db = supabase.createClient(SUPA_URL, SUPA_KEY);
+
 // ── State ──────────────────────────────────────────────────────────────────
 let currentDept = null;
 let currentStep = 1;
@@ -1365,7 +1394,6 @@ ${val('pessoal-obs')!=='—' ? `<div class="obs-box">${val('pessoal-obs')}</div>
 <div class="check-row"><span class="cb">${chk('cert-digital')}</span><div class="txt"><strong>Certificado Digital da Empresa</strong></div></div>
 <div class="check-row"><span class="cb">${chk('prefeitura')}</span><div class="txt"><strong>Usuário e senha da Prefeitura</strong></div></div>
 <div class="check-row"><span class="cb">${chk('sefaz')}</span><div class="txt"><strong>Usuário e senha do Estado (SEFAZ)</strong></div></div>
-<div class="check-row"><span class="cb">${chk('redesim')}</span><div class="txt"><strong>Rede Sim</strong></div></div>
 <div class="section-title">Documentos Societários</div>
 <div class="check-row"><span class="cb">${chk('cartao-cnpj')}</span><div class="txt"><strong>Cartão CNPJ</strong></div></div>
 <div class="check-row"><span class="cb">${chk('contrato-social')}</span><div class="txt"><strong>Contrato Social</strong></div></div>
@@ -1384,9 +1412,119 @@ ${grupos.map((g,i)=>`<div class="grupo-row"><strong>${i+1}. ${g.nome||'—'}</st
 <div class="footer">Fortec Serviços Contábeis &nbsp;|&nbsp; ${new Date().toLocaleDateString('pt-BR')}</div>
 </body></html>`;
 
+  // Salvar no Supabase
+  salvarImplantacao();
+
   const win = window.open('', '_blank');
   if (win) { win.document.write(html); win.document.close(); setTimeout(() => win.print(), 600); }
   else alert('Permita pop-ups neste site para gerar o PDF.');
+}
+
+// ── Supabase: Salvar ───────────────────────────────────────────────────────
+async function salvarImplantacao() {
+  try {
+    const razao = val('razao'); const cnpj = val('cnpj');
+    const ie = val('ie'); const im = val('im')||'—';
+    const inicio = document.getElementById('data-inicio')?.value || '';
+    const regime = document.querySelector('#chips-regime .chip.selected')?.dataset.val || '—';
+    const ramo = chips('chips-ramo');
+    const estrutura = chips('chips-estrutura');
+
+    // Contatos
+    const contatos = [];
+    document.querySelectorAll('#contatos-container .contato-card').forEach((card, i) => {
+      const inputs = card.querySelectorAll('input');
+      const nome = inputs[0]?.value||''; const tel=inputs[1]?.value||''; const email=inputs[2]?.value||'';
+      const meio = card.querySelector('.chip.selected')?.dataset.val||'';
+      if (nome||tel||email) contatos.push({nome,tel,email,meio});
+    });
+
+    // Checkboxes - coletar todos marcados
+    const checks = {};
+    document.querySelectorAll('.check-item.checked').forEach(el => { checks[el.dataset.key] = true; });
+
+    // Obs
+    const obs = {
+      fiscal: document.getElementById('obs-fiscal')?.value||'',
+      contabil: document.getElementById('obs-contabil')?.value||'',
+      pessoal: document.getElementById('obs-pessoal')?.value||'',
+      societario: document.getElementById('obs-societario')?.value||''
+    };
+
+    // Grupos
+    const grupos = [];
+    document.querySelectorAll('#grupos-container .contato-card').forEach(card => {
+      const ins = card.querySelectorAll('input[type=text]');
+      const nome=ins[0]?.value||''; const cnpjG=ins[1]?.value||'';
+      const reg=card.querySelector('.chip.selected')?.dataset.val||'';
+      if (nome||cnpjG) grupos.push({nome,cnpj:cnpjG,reg});
+    });
+
+    const payload = {
+      razao_social: razao, cnpj, ie, im,
+      data_inicio: inicio || null,
+      regime_tributario: regime,
+      ramo_atividade: ramo,
+      estrutura_societaria: estrutura,
+      contatos, grupos, checks, obs,
+      depts_concluidos: {...deptDone},
+      criado_em: new Date().toISOString()
+    };
+
+    const { error } = await db.from('implantacoes').insert([payload]);
+    if (error) console.error('Supabase error:', error);
+    else console.log('Salvo com sucesso!');
+  } catch(e) { console.error('Erro ao salvar:', e); }
+}
+
+// ── Histórico ──────────────────────────────────────────────────────────────
+async function openHistorico() {
+  showScreen('historico');
+  document.getElementById('dept-tabs').style.display = 'none';
+  document.getElementById('nav-bar').style.display = 'none';
+  document.getElementById('logo-mark').style.background = '#C8922A';
+  document.getElementById('topbar-title').textContent = 'Histórico';
+  document.getElementById('topbar-sub').textContent = 'Empresas cadastradas';
+  document.getElementById('topbar-step').textContent = '';
+  document.getElementById('progress-fill').style.width = '0%';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  carregarHistorico();
+}
+
+async function carregarHistorico() {
+  const container = document.getElementById('historico-lista');
+  container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Carregando…</div>';
+  try {
+    const { data, error } = await db.from('implantacoes')
+      .select('id,razao_social,cnpj,regime_tributario,depts_concluidos,criado_em')
+      .order('criado_em', { ascending: false })
+      .limit(100);
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Nenhum registro encontrado.</div>';
+      return;
+    }
+    container.innerHTML = data.map(r => {
+      const dt = new Date(r.criado_em).toLocaleDateString('pt-BR');
+      const hr = new Date(r.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      const deps = r.depts_concluidos || {};
+      const depBadges = ['fiscal','contabil','pessoal','societario'].map(d =>
+        `<span class="hist-dep ${deps[d]?'done':''}">${{fiscal:'Fiscal',contabil:'Contábil',pessoal:'Pessoal',societario:'Societário'}[d]}</span>`
+      ).join('');
+      return `<div class="hist-card">
+        <div class="hist-card-top">
+          <div>
+            <div class="hist-razao">${r.razao_social||'—'}</div>
+            <div class="hist-cnpj">${r.cnpj||'—'} &nbsp;·&nbsp; ${r.regime_tributario||'—'}</div>
+          </div>
+          <div class="hist-date">${dt}<br><span>${hr}</span></div>
+        </div>
+        <div class="hist-deps">${depBadges}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = `<div style="text-align:center;padding:40px;color:#DC2626">Erro ao carregar: ${e.message}</div>`;
+  }
 }
 
 // ── Reset ──────────────────────────────────────────────────────────────────
