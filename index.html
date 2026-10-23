@@ -288,7 +288,7 @@ body {
       </div>
       <div class="check-item" data-key="xml-ativo">
         <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="check-label"><strong>XML de ativo imobilizado — veículos</strong><span>Veículos novos com até 4 anos de aquisição</span></div>
+        <div class="check-label"><strong>XML de ativo imobilizado — veículos, máquinas e equipamentos</strong><span>Ativos com até 4 anos de aquisição</span></div>
       </div>
     </div>
   </div>
@@ -583,7 +583,7 @@ function gerarPDF() {
   <div class="check-row"><span class="cb">${checkLabel('sieg')}</span><div class="txt"><strong>Não possui sistema de captura — Cadastrar no SIEG</strong><span>Empresa sem captura automática de XML</span></div></div>
   ${d.sieg ? '<div class="sieg-alert">⚠ AÇÃO NECESSÁRIA: Cadastrar empresa no SIEG para download automático de XML</div>' : ''}
   <div class="check-row"><span class="cb">${checkLabel('xml-emissoes')}</span><div class="txt"><strong>XML das emissões de NF-e / CT-e</strong><span>Identificar CT-es com exportação</span></div></div>
-  <div class="check-row"><span class="cb">${checkLabel('xml-ativo')}</span><div class="txt"><strong>XML de ativo imobilizado — veículos</strong><span>Veículos novos com até 4 anos de aquisição</span></div></div>
+  <div class="check-row"><span class="cb">${checkLabel('xml-ativo')}</span><div class="txt"><strong>XML de ativo imobilizado — veículos, máquinas e equipamentos</strong><span>Ativos com até 4 anos de aquisição</span></div></div>
 </div>
 
 <div class="section">
