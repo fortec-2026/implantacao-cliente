@@ -324,7 +324,7 @@ body {
     <div class="field-row">
       <div class="field">
         <label>Telefone</label>
-        <input type="tel" id="contato-tel" placeholder="(00) 00000-0000" inputmode="tel">
+        <input type="tel" id="contato-tel" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15">
       </div>
       <div class="field">
         <label>E-mail</label>
@@ -728,6 +728,22 @@ async function fetchCNPJ(digits) {
     cnpjStatus.style.color = '#DC2626';
   }
 }
+
+// Máscara de telefone: (00)0000-0000 / (00)00000-0000
+document.getElementById('contato-tel').addEventListener('input', function () {
+  let v = this.value.replace(/\D/g, '');
+  if (v.length > 11) v = v.slice(0, 11);
+  if (v.length <= 10) {
+    // (00)0000-0000
+    v = v.replace(/^(\d{2})(\d)/, '($1)$2')
+         .replace(/(\d{4})(\d)/, '$1-$2');
+  } else {
+    // (00)00000-0000
+    v = v.replace(/^(\d{2})(\d)/, '($1)$2')
+         .replace(/(\d{5})(\d)/, '$1-$2');
+  }
+  this.value = v;
+});
 
 updateNav();
 </script>
