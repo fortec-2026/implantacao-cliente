@@ -776,14 +776,6 @@ body::before {
         <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="check-label"><strong>Rede Sim</strong><span>Acesso à Rede Nacional para Simplificação do Registro</span></div>
       </div>
-      <div class="check-item" data-key="dominio">
-        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="check-label"><strong>Sistema Domínio</strong><span>Código do cliente e honorários configurados</span></div>
-      </div>
-      <div class="check-item" data-key="email-interno">
-        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="check-label"><strong>E-mail interno criado</strong><span>Conta de e-mail do escritório para o cliente</span></div>
-      </div>
     </div>
     <div class="sdiv" style="margin-top:20px;">Documentos societários</div>
     <div class="check-list">
@@ -811,9 +803,13 @@ body::before {
         <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="check-label"><strong>Alvará de Funcionamento</strong><span>Licença de funcionamento municipal</span></div>
       </div>
-      <div class="check-item" data-key="procuracao">
+      <div class="check-item" data-key="avcb">
         <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="check-label"><strong>Procuração</strong><span>Quando necessário para representação</span></div>
+        <div class="check-label"><strong>AVCB</strong><span>Auto de Vistoria do Corpo de Bombeiros</span></div>
+      </div>
+      <div class="check-item" data-key="clcb">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>CLCB</strong><span>Certificado de Licença do Corpo de Bombeiros</span></div>
       </div>
     </div>
     <div class="field-row" style="margin-top:12px;">
@@ -1370,8 +1366,6 @@ ${val('pessoal-obs')!=='—' ? `<div class="obs-box">${val('pessoal-obs')}</div>
 <div class="check-row"><span class="cb">${chk('prefeitura')}</span><div class="txt"><strong>Usuário e senha da Prefeitura</strong></div></div>
 <div class="check-row"><span class="cb">${chk('sefaz')}</span><div class="txt"><strong>Usuário e senha do Estado (SEFAZ)</strong></div></div>
 <div class="check-row"><span class="cb">${chk('redesim')}</span><div class="txt"><strong>Rede Sim</strong></div></div>
-<div class="check-row"><span class="cb">${chk('dominio')}</span><div class="txt"><strong>Sistema Domínio</strong></div></div>
-<div class="check-row"><span class="cb">${chk('email-interno')}</span><div class="txt"><strong>E-mail interno criado</strong></div></div>
 <div class="section-title">Documentos Societários</div>
 <div class="check-row"><span class="cb">${chk('cartao-cnpj')}</span><div class="txt"><strong>Cartão CNPJ</strong></div></div>
 <div class="check-row"><span class="cb">${chk('contrato-social')}</span><div class="txt"><strong>Contrato Social</strong></div></div>
@@ -1379,7 +1373,8 @@ ${val('pessoal-obs')!=='—' ? `<div class="obs-box">${val('pessoal-obs')}</div>
 <div class="check-row"><span class="cb">${chk('docs-socios')}</span><div class="txt"><strong>Documentos dos Sócios</strong></div></div>
 <div class="check-row"><span class="cb">${chk('iptu')}</span><div class="txt"><strong>IPTU</strong></div></div>
 <div class="check-row"><span class="cb">${chk('alvara')}</span><div class="txt"><strong>Alvará de Funcionamento</strong></div></div>
-<div class="check-row"><span class="cb">${chk('procuracao')}</span><div class="txt"><strong>Procuração</strong></div></div>
+<div class="check-row"><span class="cb">${chk('avcb')}</span><div class="txt"><strong>AVCB</strong></div></div>
+<div class="check-row"><span class="cb">${chk('clcb')}</span><div class="txt"><strong>CLCB</strong></div></div>
 
 ${grupos.length>0 ? `
 <div class="section-title">Empresas do Grupo Econômico</div>
