@@ -19,6 +19,14 @@
   --success-light: #ECFDF5;
   --chip-bg: #F1F5F9;
   --input-bg: #FFFFFF;
+  --fiscal: #1B4FD8;
+  --fiscal-light: #EEF2FF;
+  --contabil: #7C3AED;
+  --contabil-light: #F5F3FF;
+  --pessoal: #0891B2;
+  --pessoal-light: #ECFEFF;
+  --societario: #059669;
+  --societario-light: #ECFDF5;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -26,59 +34,112 @@
     --bg: #0F1117; --surface: #1A1F2E; --border: #2D3344; --text: #F0F2F7;
     --muted: #8B93A8; --accent: #4B72F7; --accent-light: #1B2548; --accent-dark: #6B8EFA;
     --success: #10B981; --success-light: #0B2E25; --chip-bg: #252B3B; --input-bg: #252B3B;
+    --fiscal-light: #1B2548; --contabil-light: #2D1F4A; --pessoal-light: #0C2A35; --societario-light: #0B2E25;
     color-scheme: dark;
   }
-}
-:root[data-theme="dark"] {
-  --bg: #0F1117; --surface: #1A1F2E; --border: #2D3344; --text: #F0F2F7;
-  --muted: #8B93A8; --accent: #4B72F7; --accent-light: #1B2548; --accent-dark: #6B8EFA;
-  --success: #10B981; --success-light: #0B2E25; --chip-bg: #252B3B; --input-bg: #252B3B;
-  color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: 'DM Sans', system-ui, sans-serif;
   background: var(--bg); color: var(--text);
   min-height: 100dvh;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-left: max(16px, env(safe-area-inset-left,0px));
+  padding-right: max(16px, env(safe-area-inset-right,0px));
   display: flex; flex-direction: column;
 }
+
 /* TOP BAR */
 .topbar {
   position: sticky; top: 0; z-index: 20;
   background: var(--surface); border-bottom: 1px solid var(--border);
-  padding: 14px 0 12px;
+  padding: 14px 0 0;
 }
-.topbar-inner { display: flex; align-items: center; gap: 12px; }
+.topbar-inner { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; }
 .logo-mark {
-  width: 32px; height: 32px; background: var(--accent); border-radius: 8px;
+  width: 32px; height: 32px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .logo-mark svg { width: 18px; height: 18px; }
-.topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.topbar-title { font-size: 15px; font-weight: 600; }
 .topbar-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
 .topbar-step { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
-.progress-rail { height: 3px; background: var(--border); position: relative; overflow: hidden; margin-top: 10px; }
-.progress-fill { height: 100%; background: var(--accent); transition: width .4s cubic-bezier(.4,0,.2,1); }
-/* STEPS */
-.steps-wrap { flex: 1; }
+.progress-rail { height: 3px; background: var(--border); }
+.progress-fill { height: 100%; transition: width .4s cubic-bezier(.4,0,.2,1); }
+
+/* DEPT TABS */
+.dept-tabs {
+  display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky; top: 73px; z-index: 19;
+}
+.dept-tabs::-webkit-scrollbar { display: none; }
+.dept-tab {
+  flex: 1; min-width: 72px; padding: 10px 8px 9px;
+  font-size: 11px; font-weight: 600; text-align: center;
+  cursor: pointer; border-bottom: 2px solid transparent;
+  color: var(--muted); transition: all .15s; white-space: nowrap;
+  user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.dept-tab.active-fiscal   { color: var(--fiscal);    border-color: var(--fiscal); }
+.dept-tab.active-contabil { color: var(--contabil);  border-color: var(--contabil); }
+.dept-tab.active-pessoal  { color: var(--pessoal);   border-color: var(--pessoal); }
+.dept-tab.active-societario { color: var(--societario); border-color: var(--societario); }
+.dept-tab .tab-check { display: none; margin-left: 4px; }
+.dept-tab.done .tab-check { display: inline; }
+
+/* SCREENS */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* HOME */
+.home-screen { padding: 28px 0 40px; }
+.home-title { font-size: 26px; font-weight: 600; margin-bottom: 6px; }
+.home-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.5; }
+.dept-cards { display: flex; flex-direction: column; gap: 12px; }
+.dept-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 16px; cursor: pointer;
+  transition: border-color .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.dept-card:active { transform: scale(.98); }
+.dept-card.done { border-color: var(--success); }
+.dept-icon {
+  width: 44px; height: 44px; border-radius: 11px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.dept-card-info { flex: 1; }
+.dept-card-name { font-size: 16px; font-weight: 600; }
+.dept-card-desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.dept-card-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 10px;
+  border-radius: 99px; white-space: nowrap;
+}
+.badge-pending { background: var(--chip-bg); color: var(--muted); }
+.badge-done { background: var(--success-light); color: var(--success); }
+
+/* STEP */
 .step { display: none; padding-block: 24px 32px; animation: fadeUp .25s ease; }
 .step.active { display: block; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.step-heading { font-size: 22px; font-weight: 600; margin-bottom: 4px; text-wrap: balance; }
-.step-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.step-heading { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+.step-sub { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+
 /* FIELDS */
 .field { margin-bottom: 16px; }
 .field label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: .03em; text-transform: uppercase; margin-bottom: 6px; }
-.field input[type=text], .field input[type=email], .field input[type=tel], .field input[type=date], .field select {
+.field input[type=text], .field input[type=email], .field input[type=tel], .field input[type=date], .field select, .field textarea {
   width: 100%; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 10px;
   padding: 13px 14px; font-size: 16px; font-family: 'DM Sans', system-ui, sans-serif;
   color: var(--text); outline: none; transition: border-color .15s; -webkit-appearance: none; appearance: none;
 }
-.field input:focus, .field select:focus { border-color: var(--accent); }
+.field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
 .field-row { display: flex; gap: 12px; }
 .field-row .field { flex: 1; margin-bottom: 0; }
+
 /* CHIPS */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
@@ -90,10 +151,7 @@ body {
 .chip.selected { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
 .chip.single.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
 .chip.green-chip.selected { background: #059669; border-color: #059669; color: #fff; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .chip.green-chip.selected { background: #10B981; border-color: #10B981; }
-}
-:root[data-theme="dark"] .chip.green-chip.selected { background: #10B981; border-color: #10B981; }
+
 /* CHECK ITEMS */
 .check-list { display: flex; flex-direction: column; gap: 10px; }
 .check-item {
@@ -114,26 +172,31 @@ body {
 .check-label { flex: 1; }
 .check-label strong { font-size: 15px; font-weight: 500; display: block; line-height: 1.3; }
 .check-label span { font-size: 13px; color: var(--muted); display: block; margin-top: 2px; line-height: 1.4; }
+
 /* INFO NOTE */
 .info-note {
   display: flex; gap: 10px; align-items: flex-start;
   background: var(--accent-light); border: 1px solid var(--accent); border-radius: 10px;
   padding: 12px 14px; margin-bottom: 16px; font-size: 13px; color: var(--accent); line-height: 1.5;
 }
-.info-note svg { flex-shrink: 0; margin-top: 1px; }
+
 /* GROUP CARDS */
 .group-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
 .group-card-title { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 12px; }
+
+/* SDIV */
+.sdiv { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px; }
+
 /* NAV BAR */
 .nav-bar {
   position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border);
-  padding: 12px 0; padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  padding: 12px 0; padding-bottom: max(12px, env(safe-area-inset-bottom,0px));
   display: flex; gap: 10px; z-index: 20;
 }
 .btn {
   flex: 1; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: 600;
   font-family: 'DM Sans', system-ui, sans-serif; border: none; cursor: pointer;
-  transition: transform .1s, opacity .15s; -webkit-tap-highlight-color: transparent;
+  transition: transform .1s; -webkit-tap-highlight-color: transparent;
 }
 .btn:active { transform: scale(.97); }
 .btn-back {
@@ -141,12 +204,16 @@ body {
   display: flex; align-items: center; justify-content: center; padding: 0;
 }
 .btn-next { background: var(--accent); color: #fff; }
-.btn-next:hover { background: var(--accent-dark); }
-.btn-finish { background: var(--success); color: #fff; }
-/* SUCCESS */
+.btn-fiscal    { background: var(--fiscal); color: #fff; }
+.btn-contabil  { background: var(--contabil); color: #fff; }
+.btn-pessoal   { background: var(--pessoal); color: #fff; }
+.btn-societario { background: var(--societario); color: #fff; }
+.btn-outline { background: var(--chip-bg); color: var(--text); border: 1.5px solid var(--border); }
+
+/* SUMMARY/SUCCESS */
 .success-screen {
-  display: none; flex-direction: column; align-items: center; justify-content: center;
-  padding-block: 60px 32px; text-align: center; min-height: 60vh;
+  display: none; flex-direction: column; align-items: center;
+  padding-block: 40px 32px; text-align: center;
 }
 .success-screen.active { display: flex; }
 .success-icon {
@@ -154,33 +221,54 @@ body {
   display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
 }
 .success-icon svg { width: 36px; height: 36px; color: var(--success); }
-.success-screen h2 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
-.success-screen p { font-size: 15px; color: var(--muted); max-width: 300px; line-height: 1.6; margin-bottom: 32px; }
-.summary-card { width: 100%; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; text-align: left; margin-bottom: 20px; }
-.summary-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 14px; gap: 12px; }
+.summary-card { width: 100%; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; text-align: left; margin-bottom: 12px; }
+.summary-title { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; margin-bottom: 10px; }
+.summary-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 13px; gap: 12px; }
 .summary-row:last-child { border-bottom: none; }
-.summary-row .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; font-weight: 500; flex-shrink: 0; }
+.summary-row .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; font-weight: 500; flex-shrink: 0; }
 .summary-row .v { color: var(--text); font-weight: 500; text-align: right; }
-.btn-novo { width: 100%; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: 600; font-family: 'DM Sans', system-ui, sans-serif; border: 1.5px solid var(--border); background: var(--chip-bg); color: var(--text); cursor: pointer; -webkit-tap-highlight-color: transparent; }
-/* SDIV */
-.sdiv { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px; }
+
+/* DEPT STATUS BAR */
+.dept-status { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.dept-pill {
+  padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600;
+  border: 1.5px solid var(--border); color: var(--muted); background: var(--chip-bg);
+}
+.dept-pill.done-fiscal    { background: var(--fiscal-light);    color: var(--fiscal);    border-color: var(--fiscal); }
+.dept-pill.done-contabil  { background: var(--contabil-light);  color: var(--contabil);  border-color: var(--contabil); }
+.dept-pill.done-pessoal   { background: var(--pessoal-light);   color: var(--pessoal);   border-color: var(--pessoal); }
+.dept-pill.done-societario { background: var(--societario-light); color: var(--societario); border-color: var(--societario); }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* PRINT STYLES */
-@media print {
-  body { background: #fff !important; color: #000 !important; }
-  .topbar, .nav-bar, .steps-wrap, .success-screen .summary-card + button, .btn-novo { display: none !important; }
-  .success-screen { display: block !important; min-height: unset !important; padding: 0 !important; }
-  .print-content { display: block !important; }
+/* CONTATOS */
+.contato-card {
+  background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 14px; margin-bottom: 10px; position: relative;
 }
-.print-content { display: none; }
+.contato-card-title { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+.btn-remove-contato {
+  position: absolute; top: 12px; right: 12px;
+  background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1;
+  padding: 2px 6px; border-radius: 6px;
+}
+.btn-remove-contato:hover { background: var(--chip-bg); color: #DC2626; }
+.btn-add-contato {
+  display: flex; align-items: center; gap: 8px; justify-content: center;
+  width: 100%; padding: 12px; border-radius: 10px; border: 1.5px dashed var(--border);
+  background: none; color: var(--muted); font-size: 14px; font-weight: 500;
+  font-family: 'DM Sans', system-ui, sans-serif; cursor: pointer; margin-top: 4px;
+  transition: border-color .15s, color .15s;
+}
+.btn-add-contato:hover { border-color: var(--accent); color: var(--accent); }
 </style>
 </head>
 <body>
 
+<!-- TOP BAR -->
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="logo-mark">
+    <div class="logo-mark" id="logo-mark" style="background:#1B4FD8">
       <svg viewBox="0 0 18 18" fill="none">
         <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" fill-opacity=".9"/>
         <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" fill-opacity=".6"/>
@@ -189,22 +277,31 @@ body {
       </svg>
     </div>
     <div>
-      <div class="topbar-title">Novo cliente</div>
-      <div class="topbar-sub" id="step-name">Identificação</div>
+      <div class="topbar-title" id="topbar-title">Novo Cliente</div>
+      <div class="topbar-sub" id="topbar-sub">Selecione o departamento</div>
     </div>
-    <div class="topbar-step" id="step-counter">1 / 6</div>
+    <div class="topbar-step" id="topbar-step"></div>
   </div>
   <div class="progress-rail">
-    <div class="progress-fill" id="progress-fill" style="width:16.6%"></div>
+    <div class="progress-fill" id="progress-fill" style="width:0%;background:#1B4FD8"></div>
   </div>
 </div>
 
-<div class="steps-wrap">
+<!-- DEPT TABS (hidden on home) -->
+<div class="dept-tabs" id="dept-tabs" style="display:none">
+  <div class="dept-tab" id="tab-fiscal"     onclick="goHome()">Fiscal<span class="tab-check">✓</span></div>
+  <div class="dept-tab" id="tab-contabil"   onclick="goHome()">Contábil<span class="tab-check">✓</span></div>
+  <div class="dept-tab" id="tab-pessoal"    onclick="goHome()">Pessoal<span class="tab-check">✓</span></div>
+  <div class="dept-tab" id="tab-societario" onclick="goHome()">Societário<span class="tab-check">✓</span></div>
+</div>
 
-  <!-- STEP 1 -->
-  <div class="step active" id="step-1">
-    <div class="step-heading">Identificação da empresa</div>
-    <div class="step-sub">Dados básicos do novo cliente.</div>
+<!-- ═══════════════════════════════ HOME ═══════════════════════════════ -->
+<div class="screen active" id="screen-home">
+  <div class="home-screen">
+    <div class="home-title">Implantação de<br>Novo Cliente</div>
+    <div class="home-sub">Preencha cada departamento. Os dados de identificação são compartilhados entre todos.</div>
+
+    <!-- Identificação rápida (compartilhada) -->
     <div class="field">
       <label>CNPJ</label>
       <div style="position:relative;">
@@ -220,65 +317,156 @@ body {
     </div>
     <div class="field">
       <label>Razão Social</label>
-      <input type="text" id="razao" placeholder="Preenchido automaticamente pelo CNPJ" autocomplete="organization">
+      <input type="text" id="razao" placeholder="Preenchido automaticamente">
     </div>
     <div class="field-row">
       <div class="field">
-        <label>Data de início no escritório</label>
+        <label>IE</label>
+        <input type="text" id="ie" placeholder="Inscrição Estadual">
+      </div>
+      <div class="field">
+        <label>Data de início</label>
         <input type="date" id="data-inicio">
       </div>
     </div>
-    <div class="sdiv">Ramo de atuação <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(pode selecionar mais de um)</span></div>
+
+    <!-- CONTATOS -->
+    <div class="sdiv" style="margin-top:8px;">Contatos do responsável</div>
+    <div id="contatos-container">
+      <div class="contato-card" id="contato-0">
+        <div class="contato-card-title">Contato 1</div>
+        <div class="field">
+          <label>Nome completo</label>
+          <input type="text" placeholder="Nome do responsável" autocomplete="name">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Telefone</label>
+            <input type="tel" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15" class="tel-mask">
+          </div>
+          <div class="field">
+            <label>E-mail</label>
+            <input type="email" placeholder="email@empresa.com.br" inputmode="email">
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Como prefere receber documentos?</label>
+          <div class="chips" style="margin-top:4px;">
+            <div class="chip single" data-val="E-mail">E-mail</div>
+            <div class="chip single" data-val="WhatsApp">WhatsApp</div>
+            <div class="chip single" data-val="Sistema">Sistema</div>
+            <div class="chip single" data-val="Plataforma">Plataforma</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-add-contato" onclick="addContato()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v6M5 8h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Adicionar contato
+    </button>
+
+    <!-- EMPRESAS DO GRUPO -->
+    <div class="sdiv" style="margin-top:20px;">Empresas do grupo <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(se houver)</span></div>
+    <div id="grupos-container"></div>
+    <button class="btn-add-contato" onclick="addGrupo()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v6M5 8h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Adicionar empresa do grupo
+    </button>
+
+    <!-- REGIME / RAMO / ESTRUTURA -->
+    <div class="sdiv" style="margin-top:20px;">Regime Tributário Anterior</div>
+    <div class="chips" id="chips-regime-ant">
+      <div class="chip single" data-val="Simples Nacional">Simples Nacional</div>
+      <div class="chip single" data-val="Lucro Presumido">Lucro Presumido</div>
+      <div class="chip single" data-val="Lucro Real">Lucro Real</div>
+      <div class="chip single" data-val="Novo">Empresa nova</div>
+    </div>
+    <div class="sdiv" style="margin-top:16px;">Regime Tributário Atual</div>
+    <div class="chips" id="chips-regime">
+      <div class="chip green-chip" data-val="Simples Nacional">Simples Nacional</div>
+      <div class="chip green-chip" data-val="Lucro Presumido">Lucro Presumido</div>
+      <div class="chip green-chip" data-val="Lucro Real">Lucro Real</div>
+    </div>
+    <div class="sdiv" style="margin-top:16px;">Ramo de Atuação <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(pode selecionar mais de um)</span></div>
     <div class="chips" id="chips-ramo">
       <div class="chip multi" data-val="Comércio">Comércio</div>
       <div class="chip multi" data-val="Transporte">Transporte</div>
       <div class="chip multi" data-val="Serviços">Serviços</div>
       <div class="chip multi" data-val="Indústria">Indústria</div>
     </div>
-    <div class="sdiv">Regime Tributário Anterior</div>
-    <div class="chips" id="chips-regime-ant">
-      <div class="chip single" data-val="Simples Nacional">Simples Nacional</div>
-      <div class="chip single" data-val="Lucro Presumido">Lucro Presumido</div>
-      <div class="chip single" data-val="Lucro Real">Lucro Real</div>
+    <div class="sdiv" style="margin-top:16px;">Estrutura</div>
+    <div class="chips" id="chips-estrutura">
+      <div class="chip multi" data-val="Filial">Filial</div>
+      <div class="chip multi" data-val="Grupo Empresarial">Grupo Empresarial</div>
+      <div class="chip multi" data-val="Holding">Holding</div>
     </div>
-    <div class="sdiv">Regime Tributário Atual</div>
-    <div class="chips" id="chips-regime">
-      <div class="chip green-chip" data-val="Simples Nacional">Simples Nacional</div>
-      <div class="chip green-chip" data-val="Lucro Presumido">Lucro Presumido</div>
-      <div class="chip green-chip" data-val="Lucro Real">Lucro Real</div>
+
+    <div class="sdiv" style="margin-top:20px;">Departamentos</div>
+    <div class="dept-cards">
+      <div class="dept-card" id="card-fiscal" onclick="openDept('fiscal')">
+        <div class="dept-icon" style="background:#EEF2FF">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B4FD8" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div class="dept-card-info">
+          <div class="dept-card-name">Fiscal</div>
+          <div class="dept-card-desc">XMLs, SIEG, controles operacionais</div>
+        </div>
+        <div class="dept-card-badge badge-pending" id="badge-fiscal">Pendente</div>
+      </div>
+      <div class="dept-card" id="card-contabil" onclick="openDept('contabil')">
+        <div class="dept-icon" style="background:#F5F3FF">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <div class="dept-card-info">
+          <div class="dept-card-name">Contábil</div>
+          <div class="dept-card-desc">Financeiro, imobilizado, obrigações</div>
+        </div>
+        <div class="dept-card-badge badge-pending" id="badge-contabil">Pendente</div>
+      </div>
+      <div class="dept-card" id="card-pessoal" onclick="openDept('pessoal')">
+        <div class="dept-icon" style="background:#ECFEFF">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="dept-card-info">
+          <div class="dept-card-name">Pessoal</div>
+          <div class="dept-card-desc">Folha, vínculos, pró-labore</div>
+        </div>
+        <div class="dept-card-badge badge-pending" id="badge-pessoal">Pendente</div>
+      </div>
+      <div class="dept-card" id="card-societario" onclick="openDept('societario')">
+        <div class="dept-icon" style="background:#ECFDF5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div class="dept-card-info">
+          <div class="dept-card-name">Societário</div>
+          <div class="dept-card-desc">Documentos, acessos, sistemas</div>
+        </div>
+        <div class="dept-card-badge badge-pending" id="badge-societario">Pendente</div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;">
+      <button class="btn btn-next" style="width:100%" onclick="openFinalizar()">Finalizar e Gerar PDF</button>
     </div>
   </div>
+</div>
 
-  <!-- STEP 2 -->
-  <div class="step" id="step-2">
-    <div class="step-heading">Documentos e acessos</div>
-    <div class="step-sub">Marque os itens recebidos ou confirmados com o cliente.</div>
-    <div class="check-list">
-      <div class="check-item" data-key="cert-digital">
-        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="check-label"><strong>Certificado Digital da Empresa</strong><span>Arquivo (A1), Token ou Cartão + senha</span></div>
-      </div>
-      <div class="check-item" data-key="prefeitura">
-        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div class="check-label"><strong>Usuário e senha da Prefeitura</strong><span>Acesso para emissão e consulta de NFS-e, quando aplicável</span></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 3 -->
-  <div class="step" id="step-3">
-    <div class="step-heading">Documentação fiscal</div>
-    <div class="step-sub">Documentos para envio mensal ao escritório.</div>
+<!-- ═══════════════════════════════ FISCAL ═══════════════════════════════ -->
+<div class="screen" id="screen-fiscal">
+  <div class="step active" id="fiscal-step-1">
+    <div class="step-heading">Fiscal</div>
+    <div class="step-sub">Documentos e controles para envio mensal ao escritório.</div>
     <div class="info-note">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Prazo de envio mensal: até o 5º dia útil de cada mês.
     </div>
+    <div class="sdiv">Documentação</div>
     <div class="check-list">
       <div class="check-item" data-key="xml-entrada">
         <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="check-label"><strong>XML das NF de Entrada / Compras</strong><span>Para empresas com sistema de captura automática</span></div>
       </div>
-      <div class="check-item" id="sieg-check-item" data-key="sieg">
+      <div class="check-item" data-key="sieg">
         <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="check-label"><strong>Não possui sistema de captura — Cadastrar no SIEG</strong><span>Marque se a empresa não tem captura automática de XML</span></div>
       </div>
@@ -291,12 +479,7 @@ body {
         <div class="check-label"><strong>XML de ativo imobilizado — veículos, máquinas e equipamentos</strong><span>Ativos com até 4 anos de aquisição</span></div>
       </div>
     </div>
-  </div>
-
-  <!-- STEP 4 -->
-  <div class="step" id="step-4">
-    <div class="step-heading">Controles operacionais</div>
-    <div class="step-sub">Relatórios e planilhas necessários para as rotinas do escritório.</div>
+    <div class="sdiv" style="margin-top:20px;">Controles operacionais</div>
     <div class="check-list">
       <div class="check-item" data-key="planilha-compras">
         <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -312,354 +495,576 @@ body {
       </div>
     </div>
   </div>
+</div>
 
-  <!-- STEP 5 -->
-  <div class="step" id="step-5">
-    <div class="step-heading">Contato do responsável</div>
-    <div class="step-sub">Pessoa de referência para comunicação com o escritório.</div>
+<!-- ═══════════════════════════════ CONTÁBIL ═══════════════════════════════ -->
+<div class="screen" id="screen-contabil">
+  <div class="step active" id="contabil-step-1">
+    <div class="step-heading">Contábil</div>
+    <div class="step-sub">Financiamentos, financeiro e imobilizado da empresa.</div>
+    <div class="sdiv">Financiamentos e obrigações</div>
+    <div class="check-list">
+      <div class="check-item" data-key="emprestimos">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Empréstimos</strong><span>Contratos e saldo devedor</span></div>
+      </div>
+      <div class="check-item" data-key="financiamentos">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Financiamentos</strong><span>Veículos, imóveis, equipamentos</span></div>
+      </div>
+      <div class="check-item" data-key="consorcios">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Consórcios</strong><span>Ativos ou contemplados</span></div>
+      </div>
+      <div class="check-item" data-key="parcelamentos">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Parcelamentos fiscais</strong><span>REFIS, PERT, Simples em atraso, outros</span></div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label>Descrição / Detalhes</label>
+      <textarea id="obrigacoes-desc" placeholder="Descreva os compromissos, valores aproximados, vencimentos..."></textarea>
+    </div>
+    <div class="sdiv" style="margin-top:20px;">Financeiro</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Bancos utilizados</label>
+        <input type="text" id="bancos" placeholder="Ex: Itaú, Bradesco, Sicoob...">
+      </div>
+      <div class="field">
+        <label>Faturamento médio mensal</label>
+        <input type="text" id="faturamento" placeholder="R$ 0,00">
+      </div>
+    </div>
     <div class="field">
-      <label>Nome completo</label>
-      <input type="text" id="contato-nome" placeholder="Nome do responsável" autocomplete="name">
+      <label>Controle financeiro</label>
+      <input type="text" id="controle-fin" placeholder="Ex: Planilha, sistema, manual...">
+    </div>
+    <div class="sdiv">Despesas recorrentes</div>
+    <div class="chips" id="chips-despesas">
+      <div class="chip multi" data-val="Aluguel">Aluguel</div>
+      <div class="chip multi" data-val="Energia">Energia</div>
+      <div class="chip multi" data-val="Água">Água</div>
+      <div class="chip multi" data-val="Internet">Internet</div>
+      <div class="chip multi" data-val="Telefone">Telefone</div>
+      <div class="chip multi" data-val="Seguros">Seguros</div>
+      <div class="chip multi" data-val="Viagens">Viagens</div>
+      <div class="chip multi" data-val="Locação">Locação</div>
+      <div class="chip multi" data-val="Outros">Outros</div>
+    </div>
+    <div class="sdiv" style="margin-top:20px;">Imobilizado</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Veículos</label>
+        <textarea id="imob-veiculos" placeholder="Modelo, ano, placa..." style="min-height:60px"></textarea>
+      </div>
+      <div class="field">
+        <label>Terrenos</label>
+        <textarea id="imob-terrenos" placeholder="Localização, valor..." style="min-height:60px"></textarea>
+      </div>
     </div>
     <div class="field-row">
       <div class="field">
-        <label>Telefone</label>
-        <input type="tel" id="contato-tel" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15">
+        <label>Máquinas e Equipamentos</label>
+        <textarea id="imob-maquinas" placeholder="Descreva..." style="min-height:60px"></textarea>
       </div>
       <div class="field">
-        <label>E-mail</label>
-        <input type="email" id="contato-email" placeholder="email@empresa.com.br" inputmode="email">
+        <label>Imóveis</label>
+        <textarea id="imob-imoveis" placeholder="Endereço, área..." style="min-height:60px"></textarea>
       </div>
     </div>
-    <div class="field" style="margin-top:4px;">
-      <label>Como prefere receber os documentos?</label>
-      <div class="chips" id="chips-meio" style="margin-top:4px;">
-        <div class="chip single" data-val="E-mail">E-mail</div>
-        <div class="chip single" data-val="WhatsApp">WhatsApp</div>
-        <div class="chip single" data-val="Sistema">Sistema</div>
-        <div class="chip single" data-val="Plataforma">Plataforma</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ PESSOAL ═══════════════════════════════ -->
+<div class="screen" id="screen-pessoal">
+  <div class="step active" id="pessoal-step-1">
+    <div class="step-heading">Pessoal</div>
+    <div class="step-sub">Vínculos, folha de pagamento e sistemas de RH.</div>
+    <div class="sdiv">Vínculos existentes</div>
+    <div class="check-list">
+      <div class="check-item" data-key="funcionarios-clt">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Funcionários CLT</strong><span>Empregados com carteira assinada</span></div>
+      </div>
+      <div class="check-item" data-key="pro-labore">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Pró-Labore dos Sócios</strong><span>Retirada definida dos sócios administradores</span></div>
+      </div>
+      <div class="check-item" data-key="estagiarios">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Estagiários</strong><span>Contratos de estágio vigentes</span></div>
+      </div>
+      <div class="check-item" data-key="autonomos">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Autônomos / RPA</strong><span>Prestadores de serviço sem vínculo empregatício</span></div>
+      </div>
+    </div>
+    <div class="field-row" style="margin-top:12px;">
+      <div class="field">
+        <label>Qtd. funcionários CLT</label>
+        <input type="text" id="qtd-func" placeholder="0" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>Qtd. sócios com pró-labore</label>
+        <input type="text" id="qtd-socios" placeholder="0" inputmode="numeric">
+      </div>
+    </div>
+    <div class="sdiv" style="margin-top:20px;">Sistemas e controles</div>
+    <div class="check-list">
+      <div class="check-item" data-key="esocial">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>eSocial já configurado</strong><span>Eventos já sendo transmitidos</span></div>
+      </div>
+      <div class="check-item" data-key="ponto">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Sistema de ponto eletrônico</strong><span>REP ou software de controle de jornada</span></div>
+      </div>
+      <div class="check-item" data-key="convencao">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Convenção coletiva identificada</strong><span>Sindicato da categoria dos funcionários</span></div>
+      </div>
+      <div class="check-item" data-key="folha-anterior">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Folha do mês anterior recebida</strong><span>Para conferência de saldos e FGTS</span></div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label>Sindicato / Convenção coletiva</label>
+      <input type="text" id="sindicato" placeholder="Nome do sindicato...">
+    </div>
+    <div class="field">
+      <label>Observações</label>
+      <textarea id="pessoal-obs" placeholder="Benefícios, particularidades da folha, adicionais..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SOCIETÁRIO ═══════════════════════════════ -->
+<div class="screen" id="screen-societario">
+  <div class="step active" id="societario-step-1">
+    <div class="step-heading">Societário</div>
+    <div class="step-sub">Acessos, sistemas e documentos societários.</div>
+    <div class="sdiv">Acessos e sistemas</div>
+    <div class="check-list">
+      <div class="check-item" data-key="cert-digital">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Certificado Digital da Empresa</strong><span>Arquivo (A1), Token ou Cartão + senha</span></div>
+      </div>
+      <div class="check-item" data-key="prefeitura">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Usuário e senha da Prefeitura</strong><span>Acesso para emissão e consulta de NFS-e</span></div>
+      </div>
+      <div class="check-item" data-key="sefaz">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Usuário e senha do Estado (SEFAZ)</strong><span>Acesso ao portal estadual</span></div>
+      </div>
+      <div class="check-item" data-key="redesim">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Rede Sim</strong><span>Acesso à Rede Nacional para Simplificação do Registro</span></div>
+      </div>
+      <div class="check-item" data-key="dominio">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Sistema Domínio</strong><span>Código do cliente e honorários configurados</span></div>
+      </div>
+      <div class="check-item" data-key="email-interno">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>E-mail interno criado</strong><span>Conta de e-mail do escritório para o cliente</span></div>
+      </div>
+    </div>
+    <div class="sdiv" style="margin-top:20px;">Documentos societários</div>
+    <div class="check-list">
+      <div class="check-item" data-key="cartao-cnpj">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Cartão CNPJ</strong><span>Comprovante de inscrição no CNPJ</span></div>
+      </div>
+      <div class="check-item" data-key="contrato-social">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Contrato Social</strong><span>Última versão consolidada</span></div>
+      </div>
+      <div class="check-item" data-key="alteracoes">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Alterações Contratuais</strong><span>Todas as alterações posteriores ao contrato original</span></div>
+      </div>
+      <div class="check-item" data-key="docs-socios">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Documentos dos Sócios</strong><span>RG, CPF e comprovante de residência</span></div>
+      </div>
+      <div class="check-item" data-key="iptu">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>IPTU</strong><span>Do imóvel onde a empresa está instalada</span></div>
+      </div>
+      <div class="check-item" data-key="alvara">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Alvará de Funcionamento</strong><span>Licença de funcionamento municipal</span></div>
+      </div>
+      <div class="check-item" data-key="procuracao">
+        <div class="check-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-label"><strong>Procuração</strong><span>Quando necessário para representação</span></div>
+      </div>
+    </div>
+    <div class="field-row" style="margin-top:12px;">
+      <div class="field">
+        <label>NIRE</label>
+        <input type="text" id="nire" placeholder="Nº de registro na Junta">
+      </div>
+      <div class="field">
+        <label>Data de abertura</label>
+        <input type="date" id="data-abertura">
       </div>
     </div>
   </div>
 
-  <!-- STEP 6 -->
-  <div class="step" id="step-6">
-    <div class="step-heading">Empresas do grupo</div>
-    <div class="step-sub">Informe outras empresas do mesmo grupo econômico, se houver.</div>
-    <div id="grupos-container">
-      <div class="group-card" id="grupo-1">
-        <div class="group-card-title">Empresa 1</div>
-        <div class="field-row">
-          <div class="field"><label>Razão Social</label><input type="text" placeholder="Nome da empresa"></div>
-          <div class="field"><label>CNPJ</label><input type="text" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric"></div>
-        </div>
-        <div class="sdiv" style="margin-top:4px;">Regime</div>
-        <div class="chips">
-          <div class="chip single" data-val="Simples Nacional">Simples</div>
-          <div class="chip single" data-val="Lucro Presumido">L. Presumido</div>
-          <div class="chip single" data-val="Lucro Real">L. Real</div>
-        </div>
-      </div>
-      <div class="group-card" id="grupo-2">
-        <div class="group-card-title">Empresa 2</div>
-        <div class="field-row">
-          <div class="field"><label>Razão Social</label><input type="text" placeholder="Nome da empresa"></div>
-          <div class="field"><label>CNPJ</label><input type="text" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric"></div>
-        </div>
-        <div class="sdiv" style="margin-top:4px;">Regime</div>
-        <div class="chips">
-          <div class="chip single" data-val="Simples Nacional">Simples</div>
-          <div class="chip single" data-val="Lucro Presumido">L. Presumido</div>
-          <div class="chip single" data-val="Lucro Real">L. Real</div>
-        </div>
-      </div>
-      <div class="group-card" id="grupo-3">
-        <div class="group-card-title">Empresa 3</div>
-        <div class="field-row">
-          <div class="field"><label>Razão Social</label><input type="text" placeholder="Nome da empresa"></div>
-          <div class="field"><label>CNPJ</label><input type="text" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric"></div>
-        </div>
-        <div class="sdiv" style="margin-top:4px;">Regime</div>
-        <div class="chips">
-          <div class="chip single" data-val="Simples Nacional">Simples</div>
-          <div class="chip single" data-val="Lucro Presumido">L. Presumido</div>
-          <div class="chip single" data-val="Lucro Real">L. Real</div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- SUCCESS -->
-  <div class="success-screen" id="success-screen">
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ FINALIZAR ═══════════════════════════════ -->
+<div class="screen" id="screen-finalizar">
+  <div class="success-screen active">
     <div class="success-icon">
       <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="18" cy="18" r="16"/><path d="M11 18l5 5 9-9"/>
       </svg>
     </div>
-    <h2>Cadastro registrado!</h2>
-    <p>As informações do novo cliente foram salvas com sucesso.</p>
-    <div class="summary-card" id="summary-card"></div>
-    <button class="btn btn-finish" style="width:100%;margin-bottom:10px;" onclick="gerarPDF()">
-      ↓&nbsp; Salvar como PDF
-    </button>
-    <button class="btn-novo" onclick="resetForm()">Cadastrar novo cliente</button>
-  </div>
+    <h2 style="font-size:22px;font-weight:600;margin-bottom:6px;">Cadastro pronto!</h2>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.5;">Revise os departamentos concluídos e gere o PDF.</p>
 
+    <div class="dept-status" id="dept-status-pills"></div>
+
+    <div class="summary-card" id="summary-identificacao"></div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:4px;">
+      <button class="btn btn-next" style="width:100%" onclick="gerarPDF()">
+        🖨 Imprimir / Salvar como PDF
+      </button>
+      <button class="btn btn-outline" style="width:100%" onclick="goHome()">
+        ← Voltar e editar
+      </button>
+      <button class="btn btn-outline" style="width:100%;margin-top:4px;" onclick="resetAll()">
+        Novo cadastro
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- NAV BAR -->
-<div class="nav-bar" id="nav-bar">
-  <button class="btn btn-back" id="btn-back" onclick="prevStep()" style="display:none" aria-label="Voltar">
+<div class="nav-bar" id="nav-bar" style="display:none">
+  <button class="btn btn-back" id="btn-back" onclick="prevStep()" aria-label="Voltar">
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
   </button>
   <button class="btn btn-next" id="btn-next" onclick="nextStep()">Continuar</button>
 </div>
 
 <script>
-const TOTAL_STEPS = 6;
-let current = 1;
-const stepNames = ['Identificação','Documentos','Fiscal','Operacional','Contato','Grupo'];
+// ── State ──────────────────────────────────────────────────────────────────
+let currentDept = null;
+let currentStep = 1;
+const deptSteps = { fiscal: 1, contabil: 1, pessoal: 1, societario: 1 };
+const deptColors = {
+  fiscal:     '#1B4FD8',
+  contabil:   '#7C3AED',
+  pessoal:    '#0891B2',
+  societario: '#059669'
+};
+const deptNames = { fiscal:'Fiscal', contabil:'Contábil', pessoal:'Pessoal', societario:'Societário' };
+const deptDone = { fiscal: false, contabil: false, pessoal: false, societario: false };
 
-function updateNav() {
-  const isLast = current === TOTAL_STEPS;
-  const btnNext = document.getElementById('btn-next');
-  const btnBack = document.getElementById('btn-back');
-  btnBack.style.display = current > 1 ? 'flex' : 'none';
-  btnNext.textContent = isLast ? 'Finalizar cadastro' : 'Continuar';
-  btnNext.className = 'btn ' + (isLast ? 'btn-finish' : 'btn-next');
-  document.getElementById('step-counter').textContent = current + ' / ' + TOTAL_STEPS;
-  document.getElementById('step-name').textContent = stepNames[current - 1];
-  document.getElementById('progress-fill').style.width = (current / TOTAL_STEPS * 100) + '%';
-  document.getElementById('nav-bar').style.display = 'flex';
+// ── Navigation ─────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
 }
 
-function showStep(n) {
-  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-  const el = document.getElementById('step-' + n);
-  if (el) el.classList.add('active');
-  document.getElementById('success-screen').classList.remove('active');
+function goHome() {
+  currentDept = null;
+  showScreen('home');
+  document.getElementById('dept-tabs').style.display = 'none';
+  document.getElementById('nav-bar').style.display = 'none';
+  document.getElementById('topbar-title').textContent = 'Novo Cliente';
+  document.getElementById('topbar-sub').textContent = 'Selecione o departamento';
+  document.getElementById('topbar-step').textContent = '';
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('progress-fill').style.background = '#1B4FD8';
+  document.getElementById('logo-mark').style.background = '#1B4FD8';
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function openDept(dept) {
+  currentDept = dept;
+  currentStep = 1;
+  showScreen(dept);
+
+  const color = deptColors[dept];
+  document.getElementById('dept-tabs').style.display = 'flex';
+  document.getElementById('nav-bar').style.display = 'flex';
+  document.getElementById('logo-mark').style.background = color;
+  document.getElementById('progress-fill').style.background = color;
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('topbar-title').textContent = deptNames[dept];
+  document.getElementById('topbar-sub').textContent = deptNames[dept];
+  document.getElementById('topbar-step').textContent = '';
+
+  // Update tabs
+  document.querySelectorAll('.dept-tab').forEach(t => {
+    t.className = 'dept-tab' + (deptDone[t.id.replace('tab-','')] ? ' done' : '');
+  });
+  document.getElementById('tab-' + dept).classList.add('active-' + dept);
+
+  updateNav();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateNav() {
+  const btn = document.getElementById('btn-next');
+  const btnBack = document.getElementById('btn-back');
+  btn.textContent = 'Concluir ' + deptNames[currentDept];
+  btn.className = 'btn btn-' + currentDept;
+  btnBack.style.display = 'none';
 }
 
 function nextStep() {
-  if (current < TOTAL_STEPS) { current++; showStep(current); updateNav(); }
-  else showSuccess();
+  // Single step per dept — clicking "Concluir" marks dept as done
+  deptDone[currentDept] = true;
+  document.getElementById('badge-' + currentDept).textContent = 'Concluído ✓';
+  document.getElementById('badge-' + currentDept).className = 'dept-card-badge badge-done';
+  document.getElementById('card-' + currentDept).classList.add('done');
+  document.getElementById('tab-' + currentDept).classList.add('done');
+  goHome();
 }
 
 function prevStep() {
-  if (current > 1) { current--; showStep(current); updateNav(); }
+  goHome();
 }
 
-function showSuccess() {
-  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-  document.getElementById('success-screen').classList.add('active');
+function openFinalizar() {
+  showScreen('finalizar');
+  document.getElementById('dept-tabs').style.display = 'none';
   document.getElementById('nav-bar').style.display = 'none';
+  document.getElementById('logo-mark').style.background = '#059669';
+  document.getElementById('topbar-title').textContent = 'Resumo';
+  document.getElementById('topbar-sub').textContent = 'Cadastro finalizado';
+  document.getElementById('topbar-step').textContent = '✓';
   document.getElementById('progress-fill').style.width = '100%';
-  document.getElementById('step-name').textContent = 'Concluído';
-  document.getElementById('step-counter').textContent = '✓';
-  buildSummary();
+  document.getElementById('progress-fill').style.background = '#059669';
+  buildFinalizar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function collectData() {
-  const ramos = [...document.querySelectorAll('#chips-ramo .chip.selected')].map(c => c.dataset.val);
-  const regime = document.querySelector('#chips-regime .chip.selected')?.dataset.val || '';
-  const regimeAnt = document.querySelector('#chips-regime-ant .chip.selected')?.dataset.val || '';
-  const meio = document.querySelector('#chips-meio .chip.selected')?.dataset.val || '';
-  const sieg = document.getElementById('sieg-check-item').classList.contains('checked');
-  return {
-    razao: document.getElementById('razao').value,
-    cnpj: document.getElementById('cnpj').value,
-    dataInicio: document.getElementById('data-inicio').value,
-    ramo: ramos.join(', ') || '—',
-    regime: regime || '—',
-    regimeAnt: regimeAnt || '—',
-    contato: document.getElementById('contato-nome').value,
-    telefone: document.getElementById('contato-tel').value,
-    email: document.getElementById('contato-email').value,
-    meio: meio || '—',
-    sieg
-  };
-}
-
-function buildSummary() {
-  const d = collectData();
-  const rows = [
-    ['Razão Social', d.razao || '—'],
-    ['CNPJ', d.cnpj || '—'],
-    ['Ramo', d.ramo],
-    ['Regime Atual', d.regime],
-    ['Responsável', d.contato || '—'],
-    ['Telefone', d.telefone || '—'],
-    ['Envio docs', d.meio],
-  ];
-  document.getElementById('summary-card').innerHTML = rows.map(([k, v]) =>
-    `<div class="summary-row"><span class="k">${k}</span><span class="v">${v}</span></div>`
+function buildFinalizar() {
+  // Pills
+  const pills = document.getElementById('dept-status-pills');
+  pills.innerHTML = Object.keys(deptDone).map(d =>
+    `<div class="dept-pill ${deptDone[d] ? 'done-'+d : ''}">${deptNames[d]} ${deptDone[d] ? '✓' : '—'}</div>`
   ).join('');
+
+  // Summary identificação
+  const razao = document.getElementById('razao').value || '—';
+  const cnpj  = document.getElementById('cnpj').value  || '—';
+  const ie    = document.getElementById('ie').value    || '—';
+  const inicio = document.getElementById('data-inicio').value
+    ? new Date(document.getElementById('data-inicio').value + 'T12:00').toLocaleDateString('pt-BR') : '—';
+  const regime = document.querySelector('#chips-regime .chip.selected')?.dataset.val || '—';
+  // Pegar primeiro contato
+  const primeiroCard = document.querySelector('#contatos-container .contato-card');
+  const primeiroInputs = primeiroCard ? primeiroCard.querySelectorAll('input') : [];
+  const contato = primeiroInputs[0]?.value || '—';
+  const tel = primeiroInputs[1]?.value || '—';
+  const totalContatos = document.querySelectorAll('#contatos-container .contato-card').length;
+
+  document.getElementById('summary-identificacao').innerHTML = `
+    <div class="summary-title">Identificação</div>
+    ${[['Razão Social',razao],['CNPJ',cnpj],['IE',ie],['Início',inicio],['Regime Atual',regime],
+       ['Responsável',contato],['Telefone',tel],['Total de contatos', totalContatos + ' cadastrado(s)']]
+      .map(([k,v])=>`<div class="summary-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
+  `;
 }
 
-function checkLabel(key) {
-  const el = document.querySelector(`.check-item[data-key="${key}"]`);
-  return el?.classList.contains('checked') ? '☑' : '☐';
+// ── Chips ──────────────────────────────────────────────────────────────────
+document.querySelectorAll('.chip.multi').forEach(c =>
+  c.addEventListener('click', () => c.classList.toggle('selected'))
+);
+document.querySelectorAll('.chip.single').forEach(c =>
+  c.addEventListener('click', () => {
+    c.parentElement.querySelectorAll('.chip.single').forEach(x => x.classList.remove('selected'));
+    c.classList.add('selected');
+  })
+);
+document.querySelectorAll('.chip.green-chip').forEach(c =>
+  c.addEventListener('click', () => {
+    c.parentElement.querySelectorAll('.chip.green-chip').forEach(x => x.classList.remove('selected'));
+    c.classList.add('selected');
+  })
+);
+
+// ── Check items ────────────────────────────────────────────────────────────
+document.querySelectorAll('.check-item').forEach(item =>
+  item.addEventListener('click', () => item.classList.toggle('checked'))
+);
+
+// ── Contatos dinâmicos ─────────────────────────────────────────────────────
+let contatoCount = 1;
+
+function applyTelMask(input) {
+  input.addEventListener('input', function () {
+    let v = this.value.replace(/\D/g, '');
+    if (v.length > 11) v = v.slice(0, 11);
+    if (v.length <= 10) v = v.replace(/^(\d{2})(\d)/, '($1)$2').replace(/(\d{4})(\d)/, '$1-$2');
+    else                v = v.replace(/^(\d{2})(\d)/, '($1)$2').replace(/(\d{5})(\d)/, '$1-$2');
+    this.value = v;
+  });
+}
+// Apply to first contact
+document.querySelectorAll('.tel-mask').forEach(applyTelMask);
+
+function addContato() {
+  contatoCount++;
+  const idx = contatoCount - 1;
+  const div = document.createElement('div');
+  div.className = 'contato-card';
+  div.id = 'contato-' + idx;
+  div.innerHTML = `
+    <div class="contato-card-title">Contato ${contatoCount}</div>
+    <button class="btn-remove-contato" onclick="removeContato(${idx})" title="Remover">✕</button>
+    <div class="field">
+      <label>Nome completo</label>
+      <input type="text" placeholder="Nome do responsável" autocomplete="name">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Telefone</label>
+        <input type="tel" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15" class="tel-mask">
+      </div>
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" placeholder="email@empresa.com.br" inputmode="email">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>Como prefere receber documentos?</label>
+      <div class="chips" style="margin-top:4px;">
+        <div class="chip single" data-val="E-mail">E-mail</div>
+        <div class="chip single" data-val="WhatsApp">WhatsApp</div>
+        <div class="chip single" data-val="Sistema">Sistema</div>
+        <div class="chip single" data-val="Plataforma">Plataforma</div>
+      </div>
+    </div>`;
+  document.getElementById('contatos-container').appendChild(div);
+  // Wire up chips and tel mask
+  div.querySelectorAll('.chip.single').forEach(c =>
+    c.addEventListener('click', () => {
+      c.parentElement.querySelectorAll('.chip.single').forEach(x => x.classList.remove('selected'));
+      c.classList.add('selected');
+    })
+  );
+  div.querySelectorAll('.tel-mask').forEach(applyTelMask);
+  div.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-function gerarPDF() {
-  const d = collectData();
+function removeContato(idx) {
+  const el = document.getElementById('contato-' + idx);
+  if (el) { el.remove(); renumberContatos(); }
+}
 
-  // Grupos
-  const grupos = [];
-  for (let i = 1; i <= 3; i++) {
-    const card = document.getElementById('grupo-' + i);
-    if (!card) continue;
-    const inputs = card.querySelectorAll('input[type=text]');
-    const nome = inputs[0]?.value || '';
-    const cnpj = inputs[1]?.value || '';
-    const reg = card.querySelector('.chip.selected')?.dataset.val || '';
-    if (nome || cnpj) grupos.push({ nome, cnpj, reg });
+function renumberContatos() {
+  document.querySelectorAll('#contatos-container .contato-card').forEach((c, i) => {
+    c.querySelector('.contato-card-title').textContent = 'Contato ' + (i + 1);
+  });
+}
+
+// ── Empresas do grupo ──────────────────────────────────────────────────────
+let grupoCount = 0;
+
+function addGrupo() {
+  grupoCount++;
+  const idx = grupoCount;
+  const div = document.createElement('div');
+  div.className = 'contato-card';
+  div.id = 'grupo-' + idx;
+  div.innerHTML = `
+    <div class="contato-card-title">Empresa ${idx}</div>
+    <button class="btn-remove-contato" onclick="removeGrupo(${idx})" title="Remover">✕</button>
+    <div class="field">
+      <label>CNPJ</label>
+      <input type="text" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric" class="cnpj-grupo-mask">
+      <div class="grupo-status" style="font-size:12px;margin-top:4px;min-height:16px;"></div>
+    </div>
+    <div class="field">
+      <label>Razão Social</label>
+      <input type="text" placeholder="Preenchido automaticamente">
+    </div>
+    <div class="sdiv" style="margin-top:8px;">Regime</div>
+    <div class="chips">
+      <div class="chip single" data-val="Simples Nacional">Simples</div>
+      <div class="chip single" data-val="Lucro Presumido">L. Presumido</div>
+      <div class="chip single" data-val="Lucro Real">L. Real</div>
+    </div>`;
+  document.getElementById('grupos-container').appendChild(div);
+  div.querySelectorAll('.chip.single').forEach(c =>
+    c.addEventListener('click', () => {
+      c.parentElement.querySelectorAll('.chip.single').forEach(x => x.classList.remove('selected'));
+      c.classList.add('selected');
+    })
+  );
+  div.querySelectorAll('.cnpj-grupo-mask').forEach(applyCnpjMask);
+  div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function removeGrupo(idx) {
+  const el = document.getElementById('grupo-' + idx);
+  if (el) { el.remove(); renumberGrupos(); }
+}
+
+function renumberGrupos() {
+  document.querySelectorAll('#grupos-container .contato-card').forEach((c, i) => {
+    c.querySelector('.contato-card-title').textContent = 'Empresa ' + (i + 1);
+  });
+}
+
+function applyCnpjMask(input) {
+  let timer = null;
+  input.addEventListener('input', function () {
+    let v = this.value.replace(/\D/g, '');
+    if (v.length > 14) v = v.slice(0, 14);
+    v = v.replace(/^(\d{2})(\d)/, '$1.$2')
+         .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+         .replace(/\.(\d{3})(\d)/, '.$1/$2')
+         .replace(/(\d{4})(\d)/, '$1-$2');
+    this.value = v;
+    clearTimeout(timer);
+    const digits = v.replace(/\D/g, '');
+    if (digits.length === 14) {
+      const card = this.closest('.contato-card');
+      const nomeInput = card.querySelector('input[type=text]');
+      const statusEl = card.querySelector('.grupo-status');
+      timer = setTimeout(() => fetchCNPJGrupo(digits, nomeInput, statusEl, this), 600);
+    }
+  });
+}
+
+async function fetchCNPJGrupo(digits, nomeInput, statusEl, cnpjInput) {
+  if (statusEl) { statusEl.textContent = 'Consultando...'; statusEl.style.color = 'var(--muted)'; }
+  let razao = null;
+  try {
+    const r = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
+    if (r.ok) { const d = await r.json(); if (d?.razao_social) razao = d.razao_social; }
+  } catch {
+    try {
+      const r2 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://brasilapi.com.br/api/cnpj/v1/'+digits)}`);
+      if (r2.ok) { const w = await r2.json(); const d = JSON.parse(w.contents); if (d?.razao_social) razao = d.razao_social; }
+    } catch {}
   }
-
-  const dataFormatada = d.dataInicio
-    ? new Date(d.dataInicio + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
-
-  const html = `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<title>Implantação — ${d.razao || 'Novo Cliente'}</title>
-<style>
-  @page { size: A4; margin: 18mm 15mm; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 11px; color: #1a1a2e; background: #fff; }
-  .header { background: #1B4FD8; color: #fff; padding: 14px 18px; border-radius: 6px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
-  .header h1 { font-size: 15px; font-weight: 700; }
-  .header .sub { font-size: 10px; opacity: .8; margin-top: 3px; }
-  .header .date { font-size: 10px; opacity: .7; text-align: right; }
-  .section { margin-bottom: 14px; }
-  .section-title { background: #EEF2FF; color: #1B4FD8; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 5px 10px; border-left: 3px solid #1B4FD8; margin-bottom: 6px; }
-  .row { display: flex; border-bottom: 1px solid #eee; padding: 4px 6px; gap: 8px; }
-  .row .label { color: #666; width: 140px; flex-shrink: 0; }
-  .row .value { font-weight: 500; flex: 1; }
-  .check-row { display: flex; align-items: flex-start; gap: 8px; padding: 5px 6px; border-bottom: 1px solid #eee; }
-  .check-row .cb { font-size: 13px; flex-shrink: 0; }
-  .check-row .txt strong { display: block; }
-  .check-row .txt span { color: #666; font-size: 10px; }
-  .note { background: #EEF2FF; border: 1px solid #1B4FD8; border-radius: 4px; padding: 6px 10px; color: #1B4FD8; font-size: 10px; margin-bottom: 8px; }
-  .sieg-alert { background: #fff7ed; border: 1.5px solid #f97316; border-radius: 4px; padding: 6px 10px; margin: 4px 0 4px 22px; font-size: 10px; color: #c2410c; font-weight: 600; }
-  .grupo-row { padding: 4px 6px; border-bottom: 1px solid #eee; }
-  .footer { margin-top: 14px; font-size: 9px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 8px; }
-  .badge { display: inline-block; background: #059669; color: #fff; border-radius: 99px; padding: 1px 8px; font-size: 10px; font-weight: 700; }
-  .badge-blue { background: #1B4FD8; }
-</style>
-</head>
-<body>
-<div class="header">
-  <div>
-    <div class="sub">Checklist de Implantação de Novo Cliente</div>
-    <h1>${d.razao || 'Novo Cliente'}</h1>
-  </div>
-  <div class="date">Data: ${new Date().toLocaleDateString('pt-BR')}<br>Emitido pelo escritório</div>
-</div>
-
-<div class="section">
-  <div class="section-title">1. Identificação da Empresa</div>
-  <div class="row"><span class="label">Razão Social</span><span class="value">${d.razao || '—'}</span></div>
-  <div class="row"><span class="label">CNPJ</span><span class="value">${d.cnpj || '—'}</span></div>
-  <div class="row"><span class="label">Data de início</span><span class="value">${dataFormatada}</span></div>
-  <div class="row"><span class="label">Ramo de atuação</span><span class="value">${d.ramo}</span></div>
-  <div class="row"><span class="label">Regime anterior</span><span class="value">${d.regimeAnt}</span></div>
-  <div class="row"><span class="label">Regime atual</span><span class="value"><span class="badge">${d.regime}</span></span></div>
-</div>
-
-<div class="section">
-  <div class="section-title">2. Documentos e Acessos</div>
-  <div class="check-row"><span class="cb">${checkLabel('cert-digital')}</span><div class="txt"><strong>Certificado Digital da Empresa</strong><span>Arquivo (A1), Token ou Cartão + senha</span></div></div>
-  <div class="check-row"><span class="cb">${checkLabel('prefeitura')}</span><div class="txt"><strong>Usuário e senha da Prefeitura</strong><span>Acesso para NFS-e, quando aplicável</span></div></div>
-</div>
-
-<div class="section">
-  <div class="section-title">3. Documentação Fiscal</div>
-  <div class="note">Prazo de envio mensal: até o 5º dia útil de cada mês.</div>
-  <div class="check-row"><span class="cb">${checkLabel('xml-entrada')}</span><div class="txt"><strong>XML das NF de Entrada / Compras</strong><span>Para empresas com sistema de captura automática</span></div></div>
-  <div class="check-row"><span class="cb">${checkLabel('sieg')}</span><div class="txt"><strong>Não possui sistema de captura — Cadastrar no SIEG</strong><span>Empresa sem captura automática de XML</span></div></div>
-  ${d.sieg ? '<div class="sieg-alert">⚠ AÇÃO NECESSÁRIA: Cadastrar empresa no SIEG para download automático de XML</div>' : ''}
-  <div class="check-row"><span class="cb">${checkLabel('xml-emissoes')}</span><div class="txt"><strong>XML das emissões de NF-e / CT-e</strong><span>Identificar CT-es com exportação</span></div></div>
-  <div class="check-row"><span class="cb">${checkLabel('xml-ativo')}</span><div class="txt"><strong>XML de ativo imobilizado — veículos, máquinas e equipamentos</strong><span>Ativos com até 4 anos de aquisição</span></div></div>
-</div>
-
-<div class="section">
-  <div class="section-title">4. Controles Operacionais</div>
-  <div class="check-row"><span class="cb">${checkLabel('planilha-compras')}</span><div class="txt"><strong>Planilha de Classificação das Compras</strong></div></div>
-  <div class="check-row"><span class="cb">${checkLabel('fretes')}</span><div class="txt"><strong>Relatório de Fretes de Terceiros</strong></div></div>
-  <div class="check-row"><span class="cb">${checkLabel('servicos-tomados')}</span><div class="txt"><strong>Serviços Tomados — XML e/ou PDF</strong></div></div>
-</div>
-
-<div class="section">
-  <div class="section-title">5. Contato do Responsável</div>
-  <div class="row"><span class="label">Nome</span><span class="value">${d.contato || '—'}</span></div>
-  <div class="row"><span class="label">Telefone</span><span class="value">${d.telefone || '—'}</span></div>
-  <div class="row"><span class="label">E-mail</span><span class="value">${d.email || '—'}</span></div>
-  <div class="row"><span class="label">Recebe documentos via</span><span class="value">${d.meio}</span></div>
-</div>
-
-${grupos.length > 0 ? `
-<div class="section">
-  <div class="section-title">6. Empresas do Grupo Econômico</div>
-  ${grupos.map((g, i) => `<div class="grupo-row"><strong>${i + 1}. ${g.nome || '—'}</strong> &nbsp; CNPJ: ${g.cnpj || '—'} &nbsp; Regime: ${g.reg || '—'}</div>`).join('')}
-</div>` : ''}
-
-<div class="footer">Departamento Fiscal &nbsp;|&nbsp; Cassiano Reis &nbsp;|&nbsp; (16) 98150-5852 &nbsp;|&nbsp; Emitido em ${new Date().toLocaleDateString('pt-BR')}</div>
-</body></html>`;
-
-  const win = window.open('', '_blank');
-  if (win) {
-    win.document.write(html);
-    win.document.close();
-    setTimeout(() => win.print(), 600);
+  if (razao) {
+    nomeInput.value = razao;
+    if (statusEl) { statusEl.textContent = '✓ ' + razao; statusEl.style.color = 'var(--success)'; }
   } else {
-    alert('Permita pop-ups neste site para gerar o PDF.');
+    if (statusEl) { statusEl.textContent = 'Não encontrado'; statusEl.style.color = '#DC2626'; }
   }
 }
 
-function resetForm() {
-  document.querySelectorAll('input[type=text], input[type=email], input[type=tel], input[type=date]').forEach(i => i.value = '');
-  document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
-  document.querySelectorAll('.check-item.checked').forEach(c => c.classList.remove('checked'));
-  document.getElementById('cnpj-status').textContent = '';
-  current = 1;
-  showStep(1);
-  updateNav();
-  document.getElementById('success-screen').classList.remove('active');
-}
-
-// Chips multi
-document.querySelectorAll('.chip.multi').forEach(chip => {
-  chip.addEventListener('click', () => chip.classList.toggle('selected'));
-});
-
-// Chips single
-document.querySelectorAll('.chip.single').forEach(chip => {
-  chip.addEventListener('click', () => {
-    chip.parentElement.querySelectorAll('.chip.single').forEach(c => c.classList.remove('selected'));
-    chip.classList.add('selected');
-  });
-});
-
-// Chips green
-document.querySelectorAll('.chip.green-chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    chip.parentElement.querySelectorAll('.chip.green-chip').forEach(c => c.classList.remove('selected'));
-    chip.classList.add('selected');
-  });
-});
-
-// Check items (todos, inclusive SIEG — agora com data-key="sieg")
-document.querySelectorAll('.check-item').forEach(item => {
-  item.addEventListener('click', () => item.classList.toggle('checked'));
-});
-
-// CNPJ
-const cnpjInput = document.getElementById('cnpj');
-const cnpjStatus = document.getElementById('cnpj-status');
+// ── CNPJ ───────────────────────────────────────────────────────────────────
+const cnpjInput   = document.getElementById('cnpj');
+const cnpjStatus  = document.getElementById('cnpj-status');
 const cnpjSpinner = document.getElementById('cnpj-spinner');
 let cnpjTimer = null;
 
@@ -673,79 +1078,223 @@ cnpjInput.addEventListener('input', function () {
   this.value = v;
   clearTimeout(cnpjTimer);
   const digits = v.replace(/\D/g, '');
-  if (digits.length === 14) {
-    cnpjTimer = setTimeout(() => fetchCNPJ(digits), 600);
-  } else {
-    cnpjStatus.textContent = '';
-    cnpjStatus.style.color = '';
-  }
+  if (digits.length === 14) cnpjTimer = setTimeout(() => fetchCNPJ(digits), 600);
+  else { cnpjStatus.textContent = ''; cnpjStatus.style.color = ''; }
 });
 
 async function fetchCNPJ(digits) {
   cnpjSpinner.style.display = 'block';
   cnpjStatus.textContent = 'Consultando...';
   cnpjStatus.style.color = 'var(--muted)';
-
-  let resultado = null;
-  // Tenta BrasilAPI diretamente (funciona fora do sandbox do artifact)
+  let res = null;
   try {
     const r = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
-    if (r.ok) {
-      const d = await r.json();
-      if (d && d.razao_social) {
-        resultado = { razao: d.razao_social, cnae: (d.cnae_fiscal_descricao || '').toLowerCase() };
-      }
-    }
-  } catch (e) {
-    // Se falhar (ex: offline), tenta via proxy
+    if (r.ok) { const d = await r.json(); if (d?.razao_social) res = { razao: d.razao_social, cnae: (d.cnae_fiscal_descricao||'').toLowerCase() }; }
+  } catch {
     try {
-      const target = encodeURIComponent(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
-      const r2 = await fetch(`https://api.allorigins.win/get?url=${target}`);
-      if (r2.ok) {
-        const wrapper = await r2.json();
-        const d = JSON.parse(wrapper.contents);
-        if (d && d.razao_social) {
-          resultado = { razao: d.razao_social, cnae: (d.cnae_fiscal_descricao || '').toLowerCase() };
-        }
-      }
-    } catch (e2) {}
+      const r2 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://brasilapi.com.br/api/cnpj/v1/'+digits)}`);
+      if (r2.ok) { const w = await r2.json(); const d = JSON.parse(w.contents); if (d?.razao_social) res = { razao: d.razao_social, cnae: (d.cnae_fiscal_descricao||'').toLowerCase() }; }
+    } catch {}
   }
-
   cnpjSpinner.style.display = 'none';
-
-  if (resultado?.razao) {
-    document.getElementById('razao').value = resultado.razao;
+  if (res?.razao) {
+    document.getElementById('razao').value = res.razao;
     cnpjStatus.textContent = '✓ Empresa encontrada';
     cnpjStatus.style.color = 'var(--success)';
-    const cnae = resultado.cnae;
-    const selRamo = (val) => document.querySelectorAll('#chips-ramo .chip').forEach(c => { if (c.dataset.val === val) c.classList.add('selected'); });
-    if (cnae.includes('transport') || cnae.includes('frete') || cnae.includes('logíst')) selRamo('Transporte');
-    else if (cnae.includes('comércio') || cnae.includes('atacado') || cnae.includes('varejo')) selRamo('Comércio');
-    else if (cnae.includes('servi') || cnae.includes('assessoria') || cnae.includes('consultoria')) selRamo('Serviços');
-    else if (cnae.includes('indústr') || cnae.includes('fabrica') || cnae.includes('manufat')) selRamo('Indústria');
+    const cnae = res.cnae;
+    const sel = (val) => document.querySelectorAll('#chips-ramo .chip').forEach(c => { if(c.dataset.val===val) c.classList.add('selected'); });
+    if (cnae.includes('transport')||cnae.includes('frete')) sel('Transporte');
+    else if (cnae.includes('comércio')||cnae.includes('varejo')) sel('Comércio');
+    else if (cnae.includes('servi')||cnae.includes('consultoria')) sel('Serviços');
+    else if (cnae.includes('indústr')||cnae.includes('fabrica')) sel('Indústria');
   } else {
     cnpjStatus.textContent = 'Não encontrado — preencha manualmente';
     cnpjStatus.style.color = '#DC2626';
   }
 }
 
-// Máscara de telefone: (00)0000-0000 / (00)00000-0000
-document.getElementById('contato-tel').addEventListener('input', function () {
-  let v = this.value.replace(/\D/g, '');
-  if (v.length > 11) v = v.slice(0, 11);
-  if (v.length <= 10) {
-    // (00)0000-0000
-    v = v.replace(/^(\d{2})(\d)/, '($1)$2')
-         .replace(/(\d{4})(\d)/, '$1-$2');
-  } else {
-    // (00)00000-0000
-    v = v.replace(/^(\d{2})(\d)/, '($1)$2')
-         .replace(/(\d{5})(\d)/, '$1-$2');
-  }
-  this.value = v;
-});
+// ── PDF ────────────────────────────────────────────────────────────────────
+function chk(key) {
+  const el = document.querySelector(`.check-item[data-key="${key}"]`);
+  return el?.classList.contains('checked') ? '☑' : '☐';
+}
+function chips(id) {
+  return [...document.querySelectorAll(`#${id} .chip.selected`)].map(c=>c.dataset.val).join(', ') || '—';
+}
+function val(id) { return document.getElementById(id)?.value || '—'; }
 
-updateNav();
+function gerarPDF() {
+  const razao = val('razao'); const cnpj = val('cnpj'); const ie = val('ie');
+  const inicio = document.getElementById('data-inicio').value
+    ? new Date(document.getElementById('data-inicio').value+'T12:00').toLocaleDateString('pt-BR') : '—';
+
+  // Coletar todos os contatos
+  const contatosData = [];
+  document.querySelectorAll('#contatos-container .contato-card').forEach((card, i) => {
+    const inputs = card.querySelectorAll('input');
+    const nome = inputs[0]?.value || '';
+    const tel  = inputs[1]?.value || '';
+    const email= inputs[2]?.value || '';
+    const meio = card.querySelector('.chip.selected')?.dataset.val || '';
+    if (nome || tel || email) contatosData.push({ nome, tel, email, meio, num: i+1 });
+  });
+  const regimeAnt = chips('chips-regime-ant');
+  const regime    = document.querySelector('#chips-regime .chip.selected')?.dataset.val || '—';
+  const ramo      = chips('chips-ramo');
+  const estrutura = chips('chips-estrutura');
+
+  // Grupos
+  const grupos = [];
+  document.querySelectorAll('#grupos-container .contato-card').forEach(card => {
+    const ins = card.querySelectorAll('input[type=text]');
+    const nome = ins[0]?.value||''; const cnpjG = ins[1]?.value||'';
+    const reg = card.querySelector('.chip.selected')?.dataset.val||'';
+    if (nome||cnpjG) grupos.push({nome,cnpj:cnpjG,reg});
+  });
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+<title>Implantação — ${razao}</title>
+<style>
+@page{size:A4;margin:16mm 14mm}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:10.5px;color:#1a1a2e;background:#fff}
+.header{background:#1B4FD8;color:#fff;padding:12px 16px;border-radius:6px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.header h1{font-size:15px;font-weight:700}
+.header .sub{font-size:9px;opacity:.8;margin-bottom:3px}
+.header .date{font-size:9px;opacity:.7;text-align:right}
+.dept-header{display:flex;align-items:center;gap:8px;margin:14px 0 6px}
+.dept-badge{padding:3px 10px;border-radius:99px;font-size:9px;font-weight:700;color:#fff}
+.section-title{background:#f1f5f9;color:#334155;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-left:3px solid #94a3b8;margin:8px 0 5px}
+.row{display:flex;border-bottom:1px solid #eee;padding:3px 6px;gap:8px}
+.row .label{color:#666;width:130px;flex-shrink:0;font-size:10px}
+.row .value{font-weight:500;flex:1;font-size:10px}
+.check-row{display:flex;align-items:flex-start;gap:7px;padding:4px 6px;border-bottom:1px solid #eee}
+.check-row .cb{font-size:12px;flex-shrink:0;line-height:1.4}
+.check-row .txt strong{display:block;font-size:10px}
+.check-row .txt span{color:#666;font-size:9px}
+.sieg-alert{background:#fff7ed;border:1.5px solid #f97316;border-radius:3px;padding:4px 8px;margin:3px 0 3px 20px;font-size:9px;color:#c2410c;font-weight:700}
+.note{background:#EEF2FF;border:1px solid #1B4FD8;border-radius:3px;padding:5px 8px;color:#1B4FD8;font-size:9px;margin-bottom:6px}
+.grupo-row{padding:3px 6px;border-bottom:1px solid #eee;font-size:10px}
+.footer{margin-top:14px;font-size:8.5px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:7px}
+.badge{display:inline-block;color:#fff;border-radius:99px;padding:1px 7px;font-size:9px;font-weight:700}
+.obs-box{background:#f8f9fb;border:1px solid #e2e6ed;border-radius:3px;padding:6px 8px;font-size:10px;margin-top:4px;white-space:pre-wrap;line-height:1.5}
+</style></head><body>
+<div class="header">
+  <div><div class="sub">Checklist de Implantação de Novo Cliente</div><h1>${razao}</h1></div>
+  <div class="date">Emitido em ${new Date().toLocaleDateString('pt-BR')}<br>${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+</div>
+
+<!-- IDENTIFICAÇÃO -->
+<div class="section-title">Identificação da Empresa</div>
+<div class="row"><span class="label">Razão Social</span><span class="value">${razao}</span></div>
+<div class="row"><span class="label">CNPJ</span><span class="value">${cnpj}</span></div>
+<div class="row"><span class="label">IE</span><span class="value">${ie}</span></div>
+<div class="row"><span class="label">NIRE</span><span class="value">${val('nire')}</span></div>
+<div class="row"><span class="label">Data de abertura</span><span class="value">${document.getElementById('data-abertura').value ? new Date(document.getElementById('data-abertura').value+'T12:00').toLocaleDateString('pt-BR') : '—'}</span></div>
+<div class="row"><span class="label">Início no escritório</span><span class="value">${inicio}</span></div>
+<div class="row"><span class="label">Ramo de atuação</span><span class="value">${ramo}</span></div>
+<div class="row"><span class="label">Estrutura</span><span class="value">${estrutura}</span></div>
+<div class="row"><span class="label">Regime anterior</span><span class="value">${regimeAnt}</span></div>
+<div class="row"><span class="label">Regime atual</span><span class="value"><span class="badge" style="background:#059669">${regime}</span></span></div>
+
+<!-- CONTATOS -->
+<div class="section-title">Contatos do Responsável</div>
+${contatosData.length > 0 ? contatosData.map(c => `
+<div style="margin-bottom:6px;padding:4px 0;border-bottom:1px solid #eee;">
+  <div class="row"><span class="label">Nome</span><span class="value">${c.nome||'—'}</span></div>
+  <div class="row"><span class="label">Telefone</span><span class="value">${c.tel||'—'}</span></div>
+  <div class="row"><span class="label">E-mail</span><span class="value">${c.email||'—'}</span></div>
+  <div class="row"><span class="label">Envio de docs</span><span class="value">${c.meio||'—'}</span></div>
+</div>`).join('') : '<div class="row"><span class="label">—</span><span class="value">Nenhum contato informado</span></div>'}
+
+<!-- FISCAL -->
+<div class="dept-header"><span class="dept-badge" style="background:#1B4FD8">FISCAL</span></div>
+<div class="note">Prazo de envio mensal: até o 5º dia útil de cada mês.</div>
+<div class="check-row"><span class="cb">${chk('xml-entrada')}</span><div class="txt"><strong>XML das NF de Entrada / Compras</strong><span>Para empresas com sistema de captura automática</span></div></div>
+<div class="check-row"><span class="cb">${chk('sieg')}</span><div class="txt"><strong>Não possui sistema de captura — Cadastrar no SIEG</strong></div></div>
+${chk('sieg')==='☑' ? '<div class="sieg-alert">⚠ AÇÃO NECESSÁRIA: Cadastrar empresa no SIEG para download automático de XML</div>' : ''}
+<div class="check-row"><span class="cb">${chk('xml-emissoes')}</span><div class="txt"><strong>XML das emissões de NF-e / CT-e</strong><span>Identificar CT-es com exportação</span></div></div>
+<div class="check-row"><span class="cb">${chk('xml-ativo')}</span><div class="txt"><strong>XML de ativo imobilizado — veículos, máquinas e equipamentos</strong><span>Ativos com até 4 anos de aquisição</span></div></div>
+<div class="check-row"><span class="cb">${chk('planilha-compras')}</span><div class="txt"><strong>Planilha de Classificação das Compras</strong></div></div>
+<div class="check-row"><span class="cb">${chk('fretes')}</span><div class="txt"><strong>Relatório de Fretes de Terceiros</strong></div></div>
+<div class="check-row"><span class="cb">${chk('servicos-tomados')}</span><div class="txt"><strong>Serviços Tomados — XML e/ou PDF</strong></div></div>
+
+<!-- CONTÁBIL -->
+<div class="dept-header"><span class="dept-badge" style="background:#7C3AED">CONTÁBIL</span></div>
+<div class="section-title">Financiamentos e Obrigações</div>
+<div class="check-row"><span class="cb">${chk('emprestimos')}</span><div class="txt"><strong>Empréstimos</strong></div></div>
+<div class="check-row"><span class="cb">${chk('financiamentos')}</span><div class="txt"><strong>Financiamentos</strong></div></div>
+<div class="check-row"><span class="cb">${chk('consorcios')}</span><div class="txt"><strong>Consórcios</strong></div></div>
+<div class="check-row"><span class="cb">${chk('parcelamentos')}</span><div class="txt"><strong>Parcelamentos fiscais</strong></div></div>
+${val('obrigacoes-desc')!=='—' ? `<div class="obs-box">${val('obrigacoes-desc')}</div>` : ''}
+<div class="section-title">Financeiro</div>
+<div class="row"><span class="label">Bancos</span><span class="value">${val('bancos')}</span></div>
+<div class="row"><span class="label">Controle financeiro</span><span class="value">${val('controle-fin')}</span></div>
+<div class="row"><span class="label">Faturamento médio</span><span class="value">${val('faturamento')}</span></div>
+<div class="row"><span class="label">Despesas recorrentes</span><span class="value">${chips('chips-despesas')}</span></div>
+<div class="section-title">Imobilizado</div>
+${val('imob-veiculos')!=='—'?`<div class="row"><span class="label">Veículos</span><span class="value">${val('imob-veiculos')}</span></div>`:''}
+${val('imob-terrenos')!=='—'?`<div class="row"><span class="label">Terrenos</span><span class="value">${val('imob-terrenos')}</span></div>`:''}
+${val('imob-maquinas')!=='—'?`<div class="row"><span class="label">Máq. e Equipamentos</span><span class="value">${val('imob-maquinas')}</span></div>`:''}
+${val('imob-imoveis')!=='—'?`<div class="row"><span class="label">Imóveis</span><span class="value">${val('imob-imoveis')}</span></div>`:''}
+
+<!-- PESSOAL -->
+<div class="dept-header"><span class="dept-badge" style="background:#0891B2">PESSOAL</span></div>
+<div class="check-row"><span class="cb">${chk('funcionarios-clt')}</span><div class="txt"><strong>Funcionários CLT</strong><span>Qtd: ${val('qtd-func')}</span></div></div>
+<div class="check-row"><span class="cb">${chk('pro-labore')}</span><div class="txt"><strong>Pró-Labore dos Sócios</strong><span>Qtd: ${val('qtd-socios')}</span></div></div>
+<div class="check-row"><span class="cb">${chk('estagiarios')}</span><div class="txt"><strong>Estagiários</strong></div></div>
+<div class="check-row"><span class="cb">${chk('autonomos')}</span><div class="txt"><strong>Autônomos / RPA</strong></div></div>
+<div class="check-row"><span class="cb">${chk('esocial')}</span><div class="txt"><strong>eSocial configurado</strong></div></div>
+<div class="check-row"><span class="cb">${chk('ponto')}</span><div class="txt"><strong>Sistema de ponto eletrônico</strong></div></div>
+<div class="check-row"><span class="cb">${chk('convencao')}</span><div class="txt"><strong>Convenção coletiva identificada</strong><span>${val('sindicato')!=='—'?val('sindicato'):''}</span></div></div>
+<div class="check-row"><span class="cb">${chk('folha-anterior')}</span><div class="txt"><strong>Folha do mês anterior recebida</strong></div></div>
+${val('pessoal-obs')!=='—' ? `<div class="obs-box">${val('pessoal-obs')}</div>` : ''}
+
+<!-- SOCIETÁRIO -->
+<div class="dept-header"><span class="dept-badge" style="background:#059669">SOCIETÁRIO</span></div>
+<div class="section-title">Acessos e Sistemas</div>
+<div class="check-row"><span class="cb">${chk('cert-digital')}</span><div class="txt"><strong>Certificado Digital da Empresa</strong></div></div>
+<div class="check-row"><span class="cb">${chk('prefeitura')}</span><div class="txt"><strong>Usuário e senha da Prefeitura</strong></div></div>
+<div class="check-row"><span class="cb">${chk('sefaz')}</span><div class="txt"><strong>Usuário e senha do Estado (SEFAZ)</strong></div></div>
+<div class="check-row"><span class="cb">${chk('redesim')}</span><div class="txt"><strong>Rede Sim</strong></div></div>
+<div class="check-row"><span class="cb">${chk('dominio')}</span><div class="txt"><strong>Sistema Domínio</strong></div></div>
+<div class="check-row"><span class="cb">${chk('email-interno')}</span><div class="txt"><strong>E-mail interno criado</strong></div></div>
+<div class="section-title">Documentos Societários</div>
+<div class="check-row"><span class="cb">${chk('cartao-cnpj')}</span><div class="txt"><strong>Cartão CNPJ</strong></div></div>
+<div class="check-row"><span class="cb">${chk('contrato-social')}</span><div class="txt"><strong>Contrato Social</strong></div></div>
+<div class="check-row"><span class="cb">${chk('alteracoes')}</span><div class="txt"><strong>Alterações Contratuais</strong></div></div>
+<div class="check-row"><span class="cb">${chk('docs-socios')}</span><div class="txt"><strong>Documentos dos Sócios</strong></div></div>
+<div class="check-row"><span class="cb">${chk('iptu')}</span><div class="txt"><strong>IPTU</strong></div></div>
+<div class="check-row"><span class="cb">${chk('alvara')}</span><div class="txt"><strong>Alvará de Funcionamento</strong></div></div>
+<div class="check-row"><span class="cb">${chk('procuracao')}</span><div class="txt"><strong>Procuração</strong></div></div>
+
+${grupos.length>0 ? `
+<div class="section-title">Empresas do Grupo Econômico</div>
+${grupos.map((g,i)=>`<div class="grupo-row"><strong>${i+1}. ${g.nome||'—'}</strong> &nbsp; CNPJ: ${g.cnpj||'—'} &nbsp; Regime: ${g.reg||'—'}</div>`).join('')}
+` : ''}
+
+<div class="footer">Departamento Fiscal &nbsp;|&nbsp; Cassiano Reis &nbsp;|&nbsp; (16) 98150-5852 &nbsp;|&nbsp; ${new Date().toLocaleDateString('pt-BR')}</div>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  if (win) { win.document.write(html); win.document.close(); setTimeout(() => win.print(), 600); }
+  else alert('Permita pop-ups neste site para gerar o PDF.');
+}
+
+// ── Reset ──────────────────────────────────────────────────────────────────
+function resetAll() {
+  document.querySelectorAll('input[type=text],input[type=email],input[type=tel],input[type=date],textarea').forEach(i=>i.value='');
+  document.querySelectorAll('.chip.selected').forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll('.check-item.checked').forEach(c=>c.classList.remove('checked'));
+  document.getElementById('cnpj-status').textContent = '';
+  Object.keys(deptDone).forEach(k=>deptDone[k]=false);
+  ['fiscal','contabil','pessoal','societario'].forEach(d=>{
+    document.getElementById('badge-'+d).textContent='Pendente';
+    document.getElementById('badge-'+d).className='dept-card-badge badge-pending';
+    document.getElementById('card-'+d).classList.remove('done');
+  });
+  goHome();
+}
 </script>
 </body>
 </html>
