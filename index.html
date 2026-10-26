@@ -1421,10 +1421,13 @@ ${grupos.map((g,i)=>`<div class="grupo-row"><strong>${i+1}. ${g.nome||'—'}</st
   else alert('Permita pop-ups neste site para gerar o PDF.');
 }
 
-// ── Supabase: ID do cliente ativo ──────────────────────────────────────────
-let clienteId = null; // UUID do registro no Supabase
+// ── Supabase: estado ───────────────────────────────────────────────────────
+// Arquitetura: 2 tabelas independentes
+//   clientes      → dados de identificação (1 linha por empresa)
+//   dept_dados    → 1 linha por departamento por empresa (nunca conflitam)
+let clienteId = null;
 
-// Coleta dados de identificação da home
+// ── Helpers de coleta ──────────────────────────────────────────────────────
 function coletarIdentificacao() {
   const contatos = [];
   document.querySelectorAll('#contatos-container .contato-card').forEach(card => {
@@ -1443,14 +1446,13 @@ function coletarIdentificacao() {
   return {
     razao_social: val('razao'), cnpj: val('cnpj'), ie: val('ie'),
     data_inicio: document.getElementById('data-inicio')?.value || null,
-    regime_tributario: document.querySelector('#chips-regime .chip.selected')?.dataset.val||'—',
+    regime_tributario: document.querySelector('#chips-regime .chip.selected')?.dataset.val||'',
     ramo_atividade: chips('chips-ramo'),
     estrutura_societaria: chips('chips-estrutura'),
     contatos, grupos
   };
 }
 
-// Coleta dados de um departamento específico
 function coletarDept(dept) {
   const checks = {};
   document.querySelectorAll(`#screen-${dept} .check-item.checked`).forEach(el => { checks[el.dataset.key] = true; });
@@ -1458,90 +1460,82 @@ function coletarDept(dept) {
   return { checks, obs };
 }
 
-// Cria ou atualiza registro de identificação ao sair da home para um dept
+// ── Garantir cliente (cria ou encontra) ────────────────────────────────────
 async function garantirCliente() {
   const idData = coletarIdentificacao();
-  if (!idData.razao_social && !idData.cnpj) return true; // permite prosseguir sem dados
   try {
     if (!clienteId) {
-      // Verifica se já existe pelo CNPJ
-      if (idData.cnpj && idData.cnpj.replace(/\D/g,'').length === 14) {
-        const { data: existing } = await db.from('implantacoes')
-          .select('id').eq('cnpj', idData.cnpj).limit(1);
-        if (existing && existing.length > 0) {
-          clienteId = existing[0].id;
-        }
+      const cnpjDigits = (idData.cnpj||'').replace(/\D/g,'');
+      if (cnpjDigits.length === 14) {
+        const { data: ex } = await db.from('clientes').select('id').eq('cnpj', idData.cnpj).limit(1);
+        if (ex && ex.length > 0) clienteId = ex[0].id;
       }
       if (!clienteId) {
-        const { data, error } = await db.from('implantacoes')
-          .insert([{ ...idData, depts_concluidos: {}, atualizado_em: new Date().toISOString() }])
-          .select('id');
+        const { data, error } = await db.from('clientes')
+          .insert([{ ...idData, atualizado_em: new Date().toISOString() }]).select('id');
         if (error) throw error;
         clienteId = data[0].id;
       }
     }
-    // Atualiza identificação sempre
-    await db.from('implantacoes').update({
-      ...idData, atualizado_em: new Date().toISOString()
-    }).eq('id', clienteId);
-    return true;
-  } catch(e) { console.error('Erro ao salvar cliente:', e); return true; }
+    // Atualiza identificação (só a tabela clientes, não afeta dept_dados)
+    await db.from('clientes').update({ ...idData, atualizado_em: new Date().toISOString() }).eq('id', clienteId);
+  } catch(e) { console.error('garantirCliente:', e); }
 }
 
-// Salva dados de um departamento ao concluí-lo
+// ── Salvar departamento isolado (upsert seguro) ────────────────────────────
 async function salvarDept(dept) {
   if (!clienteId) return;
   try {
     const deptData = coletarDept(dept);
-    const update = {};
-    update[`dept_${dept}`] = deptData;
-    update[`depts_concluidos`] = {...deptDone};
-    update['atualizado_em'] = new Date().toISOString();
-    const { error } = await db.from('implantacoes').update(update).eq('id', clienteId);
-    if (error) console.error('Erro ao salvar dept:', error);
+    // upsert: se já existe linha para (cliente_id, departamento), atualiza; senão insere
+    const { error } = await db.from('dept_dados').upsert({
+      cliente_id: clienteId,
+      departamento: dept,
+      checks: deptData.checks,
+      obs: deptData.obs,
+      concluido: true,
+      atualizado_em: new Date().toISOString()
+    }, { onConflict: 'cliente_id,departamento' });
+    if (error) console.error('salvarDept:', error);
   } catch(e) { console.error(e); }
 }
 
-// Carrega cliente do Supabase e preenche todos os campos
+// ── Carregar cliente completo no dispositivo ───────────────────────────────
 async function carregarCliente(id) {
   try {
-    const { data, error } = await db.from('implantacoes').select('*').eq('id', id).single();
-    if (error || !data) throw error || new Error('não encontrado');
-    clienteId = data.id;
+    // 1. Identificação
+    const { data: c, error: ce } = await db.from('clientes').select('*').eq('id', id).single();
+    if (ce || !c) throw ce || new Error('não encontrado');
+    clienteId = c.id;
 
-    // Identificação
-    document.getElementById('razao').value = data.razao_social||'';
-    document.getElementById('cnpj').value  = data.cnpj||'';
-    document.getElementById('ie').value    = data.ie||'';
-    if (data.data_inicio) document.getElementById('data-inicio').value = data.data_inicio;
+    document.getElementById('razao').value = c.razao_social||'';
+    document.getElementById('cnpj').value  = c.cnpj||'';
+    document.getElementById('ie').value    = c.ie||'';
+    if (c.data_inicio) document.getElementById('data-inicio').value = c.data_inicio;
 
-    // Regime atual
-    document.querySelectorAll('#chips-regime .chip').forEach(c => {
-      if (c.dataset.val === data.regime_tributario) c.classList.add('selected');
+    document.querySelectorAll('#chips-regime .chip').forEach(ch => {
+      if (ch.dataset.val === c.regime_tributario) ch.classList.add('selected');
     });
-    // Ramo
-    (data.ramo_atividade||'').split(', ').forEach(v => {
-      document.querySelectorAll('#chips-ramo .chip').forEach(c => { if(c.dataset.val===v) c.classList.add('selected'); });
-    });
-    // Estrutura
-    (data.estrutura_societaria||'').split(', ').forEach(v => {
-      document.querySelectorAll('#chips-estrutura .chip').forEach(c => { if(c.dataset.val===v) c.classList.add('selected'); });
-    });
+    (c.ramo_atividade||'').split(', ').forEach(v =>
+      document.querySelectorAll('#chips-ramo .chip').forEach(ch => { if(ch.dataset.val===v) ch.classList.add('selected'); })
+    );
+    (c.estrutura_societaria||'').split(', ').forEach(v =>
+      document.querySelectorAll('#chips-estrutura .chip').forEach(ch => { if(ch.dataset.val===v) ch.classList.add('selected'); })
+    );
 
     // Contatos
     const contContainer = document.getElementById('contatos-container');
     contContainer.innerHTML = '';
     contatoCount = 0;
-    const contatos = data.contatos || [];
+    const contatos = c.contatos || [];
     if (contatos.length === 0) contatos.push({});
     contatos.forEach((ct, i) => {
       contatoCount++;
-      const isFirst = i === 0;
       const div = document.createElement('div');
       div.className = 'contato-card'; div.id = 'contato-' + i;
       div.innerHTML = `
         <div class="contato-card-title">Contato ${i+1}</div>
-        ${!isFirst ? `<button class="btn-remove-contato" onclick="removeContato(${i})" title="Remover">✕</button>` : ''}
+        ${i>0 ? `<button class="btn-remove-contato" onclick="removeContato(${i})" title="Remover">✕</button>` : ''}
         <div class="field"><label>Nome completo</label><input type="text" placeholder="Nome do responsável" value="${ct.nome||''}"></div>
         <div class="field-row">
           <div class="field"><label>Telefone</label><input type="tel" placeholder="(00) 00000-0000" maxlength="15" class="tel-mask" value="${ct.tel||''}"></div>
@@ -1550,21 +1544,19 @@ async function carregarCliente(id) {
         <div class="field" style="margin-bottom:0"><label>Como prefere receber documentos?</label>
           <div class="chips" style="margin-top:4px;">
             ${['E-mail','WhatsApp','Sistema','Plataforma'].map(v=>`<div class="chip single${ct.meio===v?' selected':''}" data-val="${v}">${v}</div>`).join('')}
-          </div>
-        </div>`;
+          </div></div>`;
       contContainer.appendChild(div);
-      div.querySelectorAll('.chip.single').forEach(c => c.addEventListener('click', () => {
-        c.parentElement.querySelectorAll('.chip.single').forEach(x=>x.classList.remove('selected'));
-        c.classList.add('selected');
+      div.querySelectorAll('.chip.single').forEach(ch => ch.addEventListener('click', () => {
+        ch.parentElement.querySelectorAll('.chip.single').forEach(x=>x.classList.remove('selected'));
+        ch.classList.add('selected');
       }));
       div.querySelectorAll('.tel-mask').forEach(applyTelMask);
     });
 
     // Grupos
     const grupoContainer = document.getElementById('grupos-container');
-    grupoContainer.innerHTML = '';
-    grupoCount = 0;
-    (data.grupos||[]).forEach((g, i) => {
+    grupoContainer.innerHTML = ''; grupoCount = 0;
+    (c.grupos||[]).forEach((g, i) => {
       grupoCount++;
       const div = document.createElement('div');
       div.className = 'contato-card'; div.id = 'grupo-' + (i+1);
@@ -1576,38 +1568,33 @@ async function carregarCliente(id) {
         <div class="sdiv" style="margin-top:8px;">Regime</div>
         <div class="chips">${['Simples Nacional','Lucro Presumido','Lucro Real'].map(v=>`<div class="chip single${g.reg===v?' selected':''}" data-val="${v}">${v.replace('Simples Nacional','Simples').replace('Lucro ','L. ')}</div>`).join('')}</div>`;
       grupoContainer.appendChild(div);
-      div.querySelectorAll('.chip.single').forEach(c => c.addEventListener('click', () => {
-        c.parentElement.querySelectorAll('.chip.single').forEach(x=>x.classList.remove('selected'));
-        c.classList.add('selected');
+      div.querySelectorAll('.chip.single').forEach(ch => ch.addEventListener('click', () => {
+        ch.parentElement.querySelectorAll('.chip.single').forEach(x=>x.classList.remove('selected'));
+        ch.classList.add('selected');
       }));
       div.querySelectorAll('.cnpj-grupo-mask').forEach(applyCnpjMask);
     });
 
-    // Checks e obs por departamento
-    ['fiscal','contabil','pessoal','societario'].forEach(dept => {
-      const dd = data[`dept_${dept}`] || {};
-      const checks = dd.checks || {};
-      Object.keys(checks).forEach(key => {
+    // 2. Dados de cada departamento (tabela separada — sem conflito)
+    const { data: dds } = await db.from('dept_dados').select('*').eq('cliente_id', id);
+    (dds||[]).forEach(dd => {
+      const dept = dd.departamento;
+      Object.keys(dd.checks||{}).forEach(key => {
         const el = document.querySelector(`#screen-${dept} .check-item[data-key="${key}"]`);
         if (el) el.classList.add('checked');
       });
       const obsEl = document.getElementById(`obs-${dept}`);
       if (obsEl) obsEl.value = dd.obs || '';
-    });
-
-    // Status dos departamentos
-    const dc = data.depts_concluidos || {};
-    ['fiscal','contabil','pessoal','societario'].forEach(d => {
-      if (dc[d]) {
-        deptDone[d] = true;
-        document.getElementById('badge-'+d).textContent = 'Concluído ✓';
-        document.getElementById('badge-'+d).className = 'dept-card-badge badge-done';
-        document.getElementById('card-'+d).classList.add('done');
-        document.getElementById('tab-'+d).classList.add('done');
+      if (dd.concluido) {
+        deptDone[dept] = true;
+        document.getElementById('badge-'+dept).textContent = 'Concluído ✓';
+        document.getElementById('badge-'+dept).className = 'dept-card-badge badge-done';
+        document.getElementById('card-'+dept).classList.add('done');
+        document.getElementById('tab-'+dept).classList.add('done');
       }
     });
     return true;
-  } catch(e) { console.error('Erro ao carregar cliente:', e); return false; }
+  } catch(e) { console.error('carregarCliente:', e); return false; }
 }
 
 // ── Histórico ──────────────────────────────────────────────────────────────
@@ -1628,8 +1615,9 @@ async function carregarHistorico() {
   const container = document.getElementById('historico-lista');
   container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Carregando…</div>';
   try {
-    const { data, error } = await db.from('implantacoes')
-      .select('id,razao_social,cnpj,regime_tributario,depts_concluidos,atualizado_em,criado_em')
+    // Busca clientes com os depts já salvos
+    const { data, error } = await db.from('clientes')
+      .select('id,razao_social,cnpj,regime_tributario,atualizado_em,criado_em')
       .order('atualizado_em', { ascending: false, nullsFirst: false })
       .limit(100);
     if (error) throw error;
@@ -1637,11 +1625,21 @@ async function carregarHistorico() {
       container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Nenhum registro encontrado.</div>';
       return;
     }
+    // Busca status dos depts para todos os clientes de uma vez
+    const ids = data.map(r=>r.id);
+    const { data: dds } = await db.from('dept_dados')
+      .select('cliente_id,departamento,concluido').in('cliente_id', ids);
+    const deptMap = {};
+    (dds||[]).forEach(d => {
+      if (!deptMap[d.cliente_id]) deptMap[d.cliente_id] = {};
+      deptMap[d.cliente_id][d.departamento] = d.concluido;
+    });
+
     container.innerHTML = data.map(r => {
       const ts = r.atualizado_em || r.criado_em;
       const dt = new Date(ts).toLocaleDateString('pt-BR');
       const hr = new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-      const deps = r.depts_concluidos || {};
+      const deps = deptMap[r.id] || {};
       const depBadges = ['fiscal','contabil','pessoal','societario'].map(d =>
         `<span class="hist-dep ${deps[d]?'done':''}">${{fiscal:'Fiscal',contabil:'Contábil',pessoal:'Pessoal',societario:'Societário'}[d]}</span>`
       ).join('');
@@ -1665,21 +1663,19 @@ async function carregarHistorico() {
 }
 
 async function abrirCliente(id) {
-  resetAll(false); // reset sem ir pra home
+  resetAll(false);
   const ok = await carregarCliente(id);
   if (ok) goHome();
 }
 
-// Salva identificação + chama salvarImplantacao ao gerar PDF
+// Chamado ao gerar PDF — garante tudo salvo
 async function salvarImplantacao() {
   await garantirCliente();
-  // Salva todos os depts de uma vez no PDF final
   if (!clienteId) return;
-  const update = { depts_concluidos: {...deptDone}, atualizado_em: new Date().toISOString() };
-  ['fiscal','contabil','pessoal','societario'].forEach(d => {
-    update[`dept_${d}`] = coletarDept(d);
-  });
-  await db.from('implantacoes').update(update).eq('id', clienteId);
+  // Salva cada dept que foi concluído (upsert seguro, não conflita)
+  for (const d of ['fiscal','contabil','pessoal','societario']) {
+    if (deptDone[d]) await salvarDept(d);
+  }
 }
 
 // ── Reset ──────────────────────────────────────────────────────────────────
