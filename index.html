@@ -1720,7 +1720,8 @@ async function executarExcluir(id) {
   document.getElementById('modal-excluir')?.remove();
   try {
     // dept_dados apaga automaticamente pelo cascade; apaga o cliente
-    const { error } = await db.from('clientes').delete().eq('id', id);
+    const { data, error, status, statusText } = await db.from('clientes').delete().eq('id', id).select();
+    console.log('Delete resultado:', { data, error, status, statusText });
     if (error) throw error;
     // Remove o card da tela sem recarregar
     document.getElementById('hcard-' + id)?.remove();
@@ -1730,7 +1731,8 @@ async function executarExcluir(id) {
       lista.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Nenhum registro encontrado.</div>';
     }
   } catch(e) {
-    alert('Erro ao excluir: ' + e.message);
+    console.error('Erro ao excluir:', e);
+    alert('Erro ao excluir: ' + (e.message || JSON.stringify(e)));
   }
 }
 
