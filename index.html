@@ -1449,6 +1449,7 @@ function coletarIdentificacao() {
     razao_social: val('razao'), cnpj: val('cnpj'), ie: val('ie'),
     data_inicio: document.getElementById('data-inicio')?.value || null,
     regime_tributario: document.querySelector('#chips-regime .chip.selected')?.dataset.val||'',
+    regime_anterior: document.querySelector('#chips-regime-ant .chip.selected')?.dataset.val||'',
     ramo_atividade: chips('chips-ramo'),
     estrutura_societaria: chips('chips-estrutura'),
     contatos, grupos
@@ -1517,6 +1518,9 @@ async function carregarCliente(id) {
 
     document.querySelectorAll('#chips-regime .chip').forEach(ch => {
       if (ch.dataset.val === c.regime_tributario) ch.classList.add('selected');
+    });
+    document.querySelectorAll('#chips-regime-ant .chip').forEach(ch => {
+      if (ch.dataset.val === c.regime_anterior) ch.classList.add('selected');
     });
     (c.ramo_atividade||'').split(', ').forEach(v =>
       document.querySelectorAll('#chips-ramo .chip').forEach(ch => { if(ch.dataset.val===v) ch.classList.add('selected'); })
