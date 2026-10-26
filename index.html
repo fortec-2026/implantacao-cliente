@@ -961,13 +961,14 @@ function updateNav() {
   btnBack.style.display = 'none';
 }
 
-function nextStep() {
-  // Single step per dept — clicking "Concluir" marks dept as done
+async function nextStep() {
   deptDone[currentDept] = true;
   document.getElementById('badge-' + currentDept).textContent = 'Concluído ✓';
   document.getElementById('badge-' + currentDept).className = 'dept-card-badge badge-done';
   document.getElementById('card-' + currentDept).classList.add('done');
   document.getElementById('tab-' + currentDept).classList.add('done');
+  await garantirCliente();
+  await salvarDept(currentDept);
   goHome();
 }
 
@@ -1420,61 +1421,193 @@ ${grupos.map((g,i)=>`<div class="grupo-row"><strong>${i+1}. ${g.nome||'—'}</st
   else alert('Permita pop-ups neste site para gerar o PDF.');
 }
 
-// ── Supabase: Salvar ───────────────────────────────────────────────────────
-async function salvarImplantacao() {
+// ── Supabase: ID do cliente ativo ──────────────────────────────────────────
+let clienteId = null; // UUID do registro no Supabase
+
+// Coleta dados de identificação da home
+function coletarIdentificacao() {
+  const contatos = [];
+  document.querySelectorAll('#contatos-container .contato-card').forEach(card => {
+    const inputs = card.querySelectorAll('input');
+    const nome=inputs[0]?.value||''; const tel=inputs[1]?.value||''; const email=inputs[2]?.value||'';
+    const meio=card.querySelector('.chip.selected')?.dataset.val||'';
+    if (nome||tel||email) contatos.push({nome,tel,email,meio});
+  });
+  const grupos = [];
+  document.querySelectorAll('#grupos-container .contato-card').forEach(card => {
+    const ins = card.querySelectorAll('input[type=text]');
+    const nome=ins[0]?.value||''; const cnpjG=ins[1]?.value||'';
+    const reg=card.querySelector('.chip.selected')?.dataset.val||'';
+    if (nome||cnpjG) grupos.push({nome,cnpj:cnpjG,reg});
+  });
+  return {
+    razao_social: val('razao'), cnpj: val('cnpj'), ie: val('ie'),
+    data_inicio: document.getElementById('data-inicio')?.value || null,
+    regime_tributario: document.querySelector('#chips-regime .chip.selected')?.dataset.val||'—',
+    ramo_atividade: chips('chips-ramo'),
+    estrutura_societaria: chips('chips-estrutura'),
+    contatos, grupos
+  };
+}
+
+// Coleta dados de um departamento específico
+function coletarDept(dept) {
+  const checks = {};
+  document.querySelectorAll(`#screen-${dept} .check-item.checked`).forEach(el => { checks[el.dataset.key] = true; });
+  const obs = document.getElementById(`obs-${dept}`)?.value || '';
+  return { checks, obs };
+}
+
+// Cria ou atualiza registro de identificação ao sair da home para um dept
+async function garantirCliente() {
+  const idData = coletarIdentificacao();
+  if (!idData.razao_social && !idData.cnpj) return true; // permite prosseguir sem dados
   try {
-    const razao = val('razao'); const cnpj = val('cnpj');
-    const ie = val('ie'); const im = val('im')||'—';
-    const inicio = document.getElementById('data-inicio')?.value || '';
-    const regime = document.querySelector('#chips-regime .chip.selected')?.dataset.val || '—';
-    const ramo = chips('chips-ramo');
-    const estrutura = chips('chips-estrutura');
+    if (!clienteId) {
+      // Verifica se já existe pelo CNPJ
+      if (idData.cnpj && idData.cnpj.replace(/\D/g,'').length === 14) {
+        const { data: existing } = await db.from('implantacoes')
+          .select('id').eq('cnpj', idData.cnpj).limit(1);
+        if (existing && existing.length > 0) {
+          clienteId = existing[0].id;
+        }
+      }
+      if (!clienteId) {
+        const { data, error } = await db.from('implantacoes')
+          .insert([{ ...idData, depts_concluidos: {}, atualizado_em: new Date().toISOString() }])
+          .select('id');
+        if (error) throw error;
+        clienteId = data[0].id;
+      }
+    }
+    // Atualiza identificação sempre
+    await db.from('implantacoes').update({
+      ...idData, atualizado_em: new Date().toISOString()
+    }).eq('id', clienteId);
+    return true;
+  } catch(e) { console.error('Erro ao salvar cliente:', e); return true; }
+}
+
+// Salva dados de um departamento ao concluí-lo
+async function salvarDept(dept) {
+  if (!clienteId) return;
+  try {
+    const deptData = coletarDept(dept);
+    const update = {};
+    update[`dept_${dept}`] = deptData;
+    update[`depts_concluidos`] = {...deptDone};
+    update['atualizado_em'] = new Date().toISOString();
+    const { error } = await db.from('implantacoes').update(update).eq('id', clienteId);
+    if (error) console.error('Erro ao salvar dept:', error);
+  } catch(e) { console.error(e); }
+}
+
+// Carrega cliente do Supabase e preenche todos os campos
+async function carregarCliente(id) {
+  try {
+    const { data, error } = await db.from('implantacoes').select('*').eq('id', id).single();
+    if (error || !data) throw error || new Error('não encontrado');
+    clienteId = data.id;
+
+    // Identificação
+    document.getElementById('razao').value = data.razao_social||'';
+    document.getElementById('cnpj').value  = data.cnpj||'';
+    document.getElementById('ie').value    = data.ie||'';
+    if (data.data_inicio) document.getElementById('data-inicio').value = data.data_inicio;
+
+    // Regime atual
+    document.querySelectorAll('#chips-regime .chip').forEach(c => {
+      if (c.dataset.val === data.regime_tributario) c.classList.add('selected');
+    });
+    // Ramo
+    (data.ramo_atividade||'').split(', ').forEach(v => {
+      document.querySelectorAll('#chips-ramo .chip').forEach(c => { if(c.dataset.val===v) c.classList.add('selected'); });
+    });
+    // Estrutura
+    (data.estrutura_societaria||'').split(', ').forEach(v => {
+      document.querySelectorAll('#chips-estrutura .chip').forEach(c => { if(c.dataset.val===v) c.classList.add('selected'); });
+    });
 
     // Contatos
-    const contatos = [];
-    document.querySelectorAll('#contatos-container .contato-card').forEach((card, i) => {
-      const inputs = card.querySelectorAll('input');
-      const nome = inputs[0]?.value||''; const tel=inputs[1]?.value||''; const email=inputs[2]?.value||'';
-      const meio = card.querySelector('.chip.selected')?.dataset.val||'';
-      if (nome||tel||email) contatos.push({nome,tel,email,meio});
+    const contContainer = document.getElementById('contatos-container');
+    contContainer.innerHTML = '';
+    contatoCount = 0;
+    const contatos = data.contatos || [];
+    if (contatos.length === 0) contatos.push({});
+    contatos.forEach((ct, i) => {
+      contatoCount++;
+      const isFirst = i === 0;
+      const div = document.createElement('div');
+      div.className = 'contato-card'; div.id = 'contato-' + i;
+      div.innerHTML = `
+        <div class="contato-card-title">Contato ${i+1}</div>
+        ${!isFirst ? `<button class="btn-remove-contato" onclick="removeContato(${i})" title="Remover">✕</button>` : ''}
+        <div class="field"><label>Nome completo</label><input type="text" placeholder="Nome do responsável" value="${ct.nome||''}"></div>
+        <div class="field-row">
+          <div class="field"><label>Telefone</label><input type="tel" placeholder="(00) 00000-0000" maxlength="15" class="tel-mask" value="${ct.tel||''}"></div>
+          <div class="field"><label>E-mail</label><input type="email" placeholder="email@empresa.com.br" value="${ct.email||''}"></div>
+        </div>
+        <div class="field" style="margin-bottom:0"><label>Como prefere receber documentos?</label>
+          <div class="chips" style="margin-top:4px;">
+            ${['E-mail','WhatsApp','Sistema','Plataforma'].map(v=>`<div class="chip single${ct.meio===v?' selected':''}" data-val="${v}">${v}</div>`).join('')}
+          </div>
+        </div>`;
+      contContainer.appendChild(div);
+      div.querySelectorAll('.chip.single').forEach(c => c.addEventListener('click', () => {
+        c.parentElement.querySelectorAll('.chip.single').forEach(x=>x.classList.remove('selected'));
+        c.classList.add('selected');
+      }));
+      div.querySelectorAll('.tel-mask').forEach(applyTelMask);
     });
-
-    // Checkboxes - coletar todos marcados
-    const checks = {};
-    document.querySelectorAll('.check-item.checked').forEach(el => { checks[el.dataset.key] = true; });
-
-    // Obs
-    const obs = {
-      fiscal: document.getElementById('obs-fiscal')?.value||'',
-      contabil: document.getElementById('obs-contabil')?.value||'',
-      pessoal: document.getElementById('obs-pessoal')?.value||'',
-      societario: document.getElementById('obs-societario')?.value||''
-    };
 
     // Grupos
-    const grupos = [];
-    document.querySelectorAll('#grupos-container .contato-card').forEach(card => {
-      const ins = card.querySelectorAll('input[type=text]');
-      const nome=ins[0]?.value||''; const cnpjG=ins[1]?.value||'';
-      const reg=card.querySelector('.chip.selected')?.dataset.val||'';
-      if (nome||cnpjG) grupos.push({nome,cnpj:cnpjG,reg});
+    const grupoContainer = document.getElementById('grupos-container');
+    grupoContainer.innerHTML = '';
+    grupoCount = 0;
+    (data.grupos||[]).forEach((g, i) => {
+      grupoCount++;
+      const div = document.createElement('div');
+      div.className = 'contato-card'; div.id = 'grupo-' + (i+1);
+      div.innerHTML = `
+        <div class="contato-card-title">Empresa ${i+1}</div>
+        <button class="btn-remove-contato" onclick="removeGrupo(${i+1})" title="Remover">✕</button>
+        <div class="field"><label>CNPJ</label><input type="text" maxlength="18" class="cnpj-grupo-mask" value="${g.cnpj||''}"><div class="grupo-status"></div></div>
+        <div class="field"><label>Razão Social</label><input type="text" value="${g.nome||''}"></div>
+        <div class="sdiv" style="margin-top:8px;">Regime</div>
+        <div class="chips">${['Simples Nacional','Lucro Presumido','Lucro Real'].map(v=>`<div class="chip single${g.reg===v?' selected':''}" data-val="${v}">${v.replace('Simples Nacional','Simples').replace('Lucro ','L. ')}</div>`).join('')}</div>`;
+      grupoContainer.appendChild(div);
+      div.querySelectorAll('.chip.single').forEach(c => c.addEventListener('click', () => {
+        c.parentElement.querySelectorAll('.chip.single').forEach(x=>x.classList.remove('selected'));
+        c.classList.add('selected');
+      }));
+      div.querySelectorAll('.cnpj-grupo-mask').forEach(applyCnpjMask);
     });
 
-    const payload = {
-      razao_social: razao, cnpj, ie, im,
-      data_inicio: inicio || null,
-      regime_tributario: regime,
-      ramo_atividade: ramo,
-      estrutura_societaria: estrutura,
-      contatos, grupos, checks, obs,
-      depts_concluidos: {...deptDone},
-      criado_em: new Date().toISOString()
-    };
+    // Checks e obs por departamento
+    ['fiscal','contabil','pessoal','societario'].forEach(dept => {
+      const dd = data[`dept_${dept}`] || {};
+      const checks = dd.checks || {};
+      Object.keys(checks).forEach(key => {
+        const el = document.querySelector(`#screen-${dept} .check-item[data-key="${key}"]`);
+        if (el) el.classList.add('checked');
+      });
+      const obsEl = document.getElementById(`obs-${dept}`);
+      if (obsEl) obsEl.value = dd.obs || '';
+    });
 
-    const { error } = await db.from('implantacoes').insert([payload]);
-    if (error) console.error('Supabase error:', error);
-    else console.log('Salvo com sucesso!');
-  } catch(e) { console.error('Erro ao salvar:', e); }
+    // Status dos departamentos
+    const dc = data.depts_concluidos || {};
+    ['fiscal','contabil','pessoal','societario'].forEach(d => {
+      if (dc[d]) {
+        deptDone[d] = true;
+        document.getElementById('badge-'+d).textContent = 'Concluído ✓';
+        document.getElementById('badge-'+d).className = 'dept-card-badge badge-done';
+        document.getElementById('card-'+d).classList.add('done');
+        document.getElementById('tab-'+d).classList.add('done');
+      }
+    });
+    return true;
+  } catch(e) { console.error('Erro ao carregar cliente:', e); return false; }
 }
 
 // ── Histórico ──────────────────────────────────────────────────────────────
@@ -1496,8 +1629,8 @@ async function carregarHistorico() {
   container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Carregando…</div>';
   try {
     const { data, error } = await db.from('implantacoes')
-      .select('id,razao_social,cnpj,regime_tributario,depts_concluidos,criado_em')
-      .order('criado_em', { ascending: false })
+      .select('id,razao_social,cnpj,regime_tributario,depts_concluidos,atualizado_em,criado_em')
+      .order('atualizado_em', { ascending: false, nullsFirst: false })
       .limit(100);
     if (error) throw error;
     if (!data || data.length === 0) {
@@ -1505,19 +1638,23 @@ async function carregarHistorico() {
       return;
     }
     container.innerHTML = data.map(r => {
-      const dt = new Date(r.criado_em).toLocaleDateString('pt-BR');
-      const hr = new Date(r.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      const ts = r.atualizado_em || r.criado_em;
+      const dt = new Date(ts).toLocaleDateString('pt-BR');
+      const hr = new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
       const deps = r.depts_concluidos || {};
       const depBadges = ['fiscal','contabil','pessoal','societario'].map(d =>
         `<span class="hist-dep ${deps[d]?'done':''}">${{fiscal:'Fiscal',contabil:'Contábil',pessoal:'Pessoal',societario:'Societário'}[d]}</span>`
       ).join('');
-      return `<div class="hist-card">
+      return `<div class="hist-card" onclick="abrirCliente('${r.id}')" style="cursor:pointer">
         <div class="hist-card-top">
           <div>
             <div class="hist-razao">${r.razao_social||'—'}</div>
             <div class="hist-cnpj">${r.cnpj||'—'} &nbsp;·&nbsp; ${r.regime_tributario||'—'}</div>
           </div>
-          <div class="hist-date">${dt}<br><span>${hr}</span></div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <div class="hist-date">${dt}<br><span>${hr}</span></div>
+            <span style="font-size:11px;color:var(--accent);font-weight:600">Abrir →</span>
+          </div>
         </div>
         <div class="hist-deps">${depBadges}</div>
       </div>`;
@@ -1527,8 +1664,27 @@ async function carregarHistorico() {
   }
 }
 
+async function abrirCliente(id) {
+  resetAll(false); // reset sem ir pra home
+  const ok = await carregarCliente(id);
+  if (ok) goHome();
+}
+
+// Salva identificação + chama salvarImplantacao ao gerar PDF
+async function salvarImplantacao() {
+  await garantirCliente();
+  // Salva todos os depts de uma vez no PDF final
+  if (!clienteId) return;
+  const update = { depts_concluidos: {...deptDone}, atualizado_em: new Date().toISOString() };
+  ['fiscal','contabil','pessoal','societario'].forEach(d => {
+    update[`dept_${d}`] = coletarDept(d);
+  });
+  await db.from('implantacoes').update(update).eq('id', clienteId);
+}
+
 // ── Reset ──────────────────────────────────────────────────────────────────
-function resetAll() {
+function resetAll(navHome = true) {
+  clienteId = null;
   document.querySelectorAll('input[type=text],input[type=email],input[type=tel],input[type=date],textarea').forEach(i=>i.value='');
   document.querySelectorAll('.chip.selected').forEach(c=>c.classList.remove('selected'));
   document.querySelectorAll('.check-item.checked').forEach(c=>c.classList.remove('checked'));
@@ -1538,8 +1694,36 @@ function resetAll() {
     document.getElementById('badge-'+d).textContent='Pendente';
     document.getElementById('badge-'+d).className='dept-card-badge badge-pending';
     document.getElementById('card-'+d).classList.remove('done');
+    document.getElementById('tab-'+d).classList.remove('done');
   });
-  goHome();
+  // Restaura contato inicial
+  document.getElementById('contatos-container').innerHTML = `
+    <div class="contato-card" id="contato-0">
+      <div class="contato-card-title">Contato 1</div>
+      <div class="field"><label>Nome completo</label><input type="text" placeholder="Nome do responsável" autocomplete="name"></div>
+      <div class="field-row">
+        <div class="field"><label>Telefone</label><input type="tel" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15" class="tel-mask"></div>
+        <div class="field"><label>E-mail</label><input type="email" placeholder="email@empresa.com.br" inputmode="email"></div>
+      </div>
+      <div class="field" style="margin-bottom:0"><label>Como prefere receber documentos?</label>
+        <div class="chips" style="margin-top:4px;">
+          <div class="chip single" data-val="E-mail">E-mail</div>
+          <div class="chip single" data-val="WhatsApp">WhatsApp</div>
+          <div class="chip single" data-val="Sistema">Sistema</div>
+          <div class="chip single" data-val="Plataforma">Plataforma</div>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('contatos-container').querySelectorAll('.chip.single').forEach(c =>
+    c.addEventListener('click', () => {
+      c.parentElement.querySelectorAll('.chip.single').forEach(x=>x.classList.remove('selected'));
+      c.classList.add('selected');
+    })
+  );
+  document.getElementById('contatos-container').querySelectorAll('.tel-mask').forEach(applyTelMask);
+  document.getElementById('grupos-container').innerHTML = '';
+  contatoCount = 1; grupoCount = 0;
+  if (navHome) goHome();
 }
 </script>
 </body>
