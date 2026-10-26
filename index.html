@@ -425,6 +425,10 @@ body::before {
       <div class="home-sub">Preencha os dados de identificação e acesse cada departamento para concluir o cadastro.</div>
     </div>
 
+    <div style="margin-bottom:20px;">
+      <button class="btn" style="width:100%;background:transparent;border:1.5px solid var(--gold);color:var(--gold);font-weight:600" onclick="openHistorico()">📋 Histórico de Implantações</button>
+    </div>
+
     <!-- Identificação rápida (compartilhada) -->
     <div class="field">
       <label>CNPJ</label>
@@ -571,9 +575,6 @@ body::before {
 
     <div style="margin-top:24px;">
       <button class="btn btn-next" style="width:100%" onclick="openFinalizar()">Finalizar e Gerar PDF</button>
-    </div>
-    <div style="margin-top:12px;">
-      <button class="btn" style="width:100%;background:transparent;border:1.5px solid var(--gold);color:var(--gold);font-weight:600" onclick="openHistorico()">📋 Histórico de Implantações</button>
     </div>
   </div>
 </div>
@@ -881,8 +882,9 @@ body::before {
 
 <!-- NAV BAR -->
 <div class="nav-bar" id="nav-bar" style="display:none">
-  <button class="btn btn-back" id="btn-back" onclick="prevStep()" aria-label="Voltar">
-    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+  <button class="btn btn-back" id="btn-back" onclick="goHome()" aria-label="Início" title="Voltar ao início" style="display:flex!important;gap:6px;align-items:center;font-size:13px;padding:0 14px">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M12 4l-6 6 6 6"/></svg>
+    Início
   </button>
   <button class="btn btn-next" id="btn-next" onclick="nextStep()">Continuar</button>
 </div>
