@@ -968,6 +968,14 @@ function updateNav() {
 }
 
 async function nextStep() {
+  // Bloqueia se não houver identificação mínima
+  const razao = document.getElementById('razao')?.value?.trim();
+  const cnpj = (document.getElementById('cnpj')?.value||'').replace(/\D/g,'');
+  if (!razao && cnpj.length < 14) {
+    alert('Preencha a Razão Social e o CNPJ na tela inicial antes de concluir um departamento.');
+    goHome();
+    return;
+  }
   deptDone[currentDept] = true;
   document.getElementById('badge-' + currentDept).textContent = 'Concluído ✓';
   document.getElementById('badge-' + currentDept).className = 'dept-card-badge badge-done';
@@ -1470,9 +1478,14 @@ function coletarDept(dept) {
 // ── Garantir cliente (cria ou encontra) ────────────────────────────────────
 async function garantirCliente() {
   const idData = coletarIdentificacao();
+  // Não cria registro sem razão social ou CNPJ
+  const cnpjDigits = (idData.cnpj||'').replace(/\D/g,'');
+  if (!idData.razao_social?.trim() && cnpjDigits.length < 14) {
+    console.warn('garantirCliente: dados de identificação insuficientes, salvamento ignorado.');
+    return;
+  }
   try {
     if (!clienteId) {
-      const cnpjDigits = (idData.cnpj||'').replace(/\D/g,'');
       if (cnpjDigits.length === 14) {
         const { data: ex } = await db.from('clientes').select('id').eq('cnpj', idData.cnpj).limit(1);
         if (ex && ex.length > 0) clienteId = ex[0].id;
